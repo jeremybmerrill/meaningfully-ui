@@ -106,7 +106,7 @@
   <div class="flex items-center space-x-4">
     <button 
       class="text-blue-500 hover:text-blue-600 flex items-center space-x-1"
-      onclick={() => history.back()}
+      onclick={() => navigate('/') }
     >
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
