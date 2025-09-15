@@ -49,35 +49,42 @@
         <h2>OpenAI</h2>
         <p>OpenAI provides embeddings at a (generally very cheap) cost.</p>
         <label for="openai-key">API Key:</label>
-        <input type="text" id="openai-key" data-testid="openai-api-key-input" placeholder="sk-proj-test-1234567890" bind:value={openAIKey} />
+        <input type="text" id="openai-key" data-testid="openai-api-key-input" placeholder="sk-proj-test-1234567890" bind:value={openAIKey} 
+                    class="flex-1 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 placeholder:italic"/>
     </div>
     <div class="settings-section">
         <h2>OLlama</h2>
         <p>OLlama lets you run embedding models on your computer. This is free (except for electricity, wear-and-tear, etc.).</p>
         <label for="ollama-url">Base URL:</label>
-        <input type="text" id="ollama-url" placeholder="http://localhost:11434" bind:value={oLlamaBaseURL} />
+        <input type="text" id="ollama-url" placeholder="http://localhost:11434" bind:value={oLlamaBaseURL} 
+                    class="flex-1 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 placeholder:italic"/>
     </div>
     <div class="settings-section">
         <h2>Azure OpenAI</h2>
         <p>Azure OpenAI provides the same models as OpenAI through Microsoft's Azure platform.</p>
         <label for="azure-key">API Key:</label>
-        <input type="text" id="azure-key" placeholder="API Key" bind:value={azureOpenAIKey} />
+        <input type="text" id="azure-key" placeholder="API Key" bind:value={azureOpenAIKey} 
+                    class="flex-1 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 placeholder:italic"/>
         <label for="azure-endpoint">Endpoint:</label>
-        <input type="text" id="azure-endpoint" placeholder="https://your-resource-name.openai.azure.com" bind:value={azureOpenAIEndpoint} />
+        <input type="text" id="azure-endpoint" placeholder="https://your-resource-name.openai.azure.com" bind:value={azureOpenAIEndpoint} 
+                    class="flex-1 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 placeholder:italic"/>
         <label for="azure-version">API Version:</label>
-        <input type="text" id="azure-version" placeholder="2024-02-01" bind:value={azureOpenAIApiVersion} />
+        <input type="text" id="azure-version" placeholder="2024-02-01" bind:value={azureOpenAIApiVersion} 
+                    class="flex-1 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 placeholder:italic"/>
     </div>
     <div class="settings-section">
         <h2>Mistral AI</h2>
         <p>Mistral AI provides embedding models with competitive pricing.</p>
         <label for="mistral-key">API Key:</label>
-        <input type="text" id="mistral-key" placeholder="API Key" bind:value={mistralApiKey} />
+        <input type="text" id="mistral-key" placeholder="API Key" bind:value={mistralApiKey} 
+                    class="flex-1 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 placeholder:italic"/>
     </div>
     <div class="settings-section">
         <h2>Google Gemini</h2>
         <p>Google Gemini provides free embedding models with good performance.</p>
         <label for="gemini-key">API Key:</label>
-        <input type="text" id="gemini-key" placeholder="API Key" bind:value={geminiApiKey} />
+        <input type="text" id="gemini-key" placeholder="API Key" bind:value={geminiApiKey} 
+                    class="flex-1 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 placeholder:italic"/>
     </div>
 
     <button data-testid="save" onclick={saveSettings}>Save</button>
