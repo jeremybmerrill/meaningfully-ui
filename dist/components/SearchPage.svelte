@@ -29,6 +29,7 @@
 
   api.getDocumentSet(documentSetId).then((receivedDocumentSet: DocumentSet) => {
     documentSet = receivedDocumentSet;
+    documentSet.uploadDate = new Date(documentSet.uploadDate); // convert to Date object, if necessary (SQLite returns date obj, Postgres returns string)
     metadataColumns = (documentSet.parameters.metadataColumns ?? []) as string[];
     // @ts-ignore
     textColumn = documentSet.parameters.textColumns[0] as string;
