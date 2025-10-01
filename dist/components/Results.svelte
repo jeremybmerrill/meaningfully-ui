@@ -27,6 +27,32 @@
     displayCount += 10;
   };
 
+  // copied from https://github.com/run-llama/LlamaIndexTS/blob/main/packages/providers/storage/weaviate/src/sanitize.ts
+  const sanitizePropertyName = (name: string): string => {
+    // Replace invalid characters with underscores
+    let sanitized = name.replace(/[^_A-Za-z0-9]/g, "_");
+
+    // Ensure it starts with a letter or underscore
+    if (!/^[_A-Za-z]/.test(sanitized)) {
+      sanitized = "_" + sanitized;
+    }
+
+    // Remove consecutive underscores
+    sanitized = sanitized.replace(/_+/g, "_");
+
+    // Remove trailing underscores
+    sanitized = sanitized.replace(/_+$/, "");
+
+    // Ensure it's not empty
+    if (!sanitized) {
+      sanitized = "_property";
+    }
+    // lowercase first letter to match weaviate behavior
+    sanitized = sanitized.charAt(0).toLowerCase() + sanitized.slice(1);
+
+    return sanitized;
+  };
+
   // Function to download results as CSV
   const downloadCSV = () => {
     if (results.length === 0) return;
@@ -39,8 +65,10 @@
       csvRow[textColumn] = row[textColumn] || '';
       
       // Add metadata columns
+      // check the sanitized version if the original doesn't exist
+      // certain characters aren't allowed in weaviate property names  -- if present, and if weaviate is used as storage, they will be returned as sanitized.
       metadataColumns.forEach(column => {
-        csvRow[column] = row[column] || '';
+        csvRow[column] = row[column] || row[sanitizePropertyName(column)] ||  '';
       });
       
       // Add similarity column, formatted as percentage

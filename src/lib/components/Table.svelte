@@ -21,6 +21,33 @@
   // text column is always called text internally, but we rename just the header.
   let columns = $derived([textColumn, ...metadataColumns, ...(showSimilarity ? ['similarity'] : [])]);
 
+
+  // copied from https://github.com/run-llama/LlamaIndexTS/blob/main/packages/providers/storage/weaviate/src/sanitize.ts
+  const sanitizePropertyName = (name: string): string => {
+    // Replace invalid characters with underscores
+    let sanitized = name.replace(/[^_A-Za-z0-9]/g, "_");
+
+    // Ensure it starts with a letter or underscore
+    if (!/^[_A-Za-z]/.test(sanitized)) {
+      sanitized = "_" + sanitized;
+    }
+
+    // Remove consecutive underscores
+    sanitized = sanitized.replace(/_+/g, "_");
+
+    // Remove trailing underscores
+    sanitized = sanitized.replace(/_+$/, "");
+
+    // Ensure it's not empty
+    if (!sanitized) {
+      sanitized = "_property";
+    }
+    // lowercase first letter to match weaviate behavior
+    sanitized = sanitized.charAt(0).toLowerCase() + sanitized.slice(1);
+
+    return sanitized;
+  };
+
   function sanitizeAndFormatText(text: string): string {
     text = text.trim().replace(/^\\n/, '').replace(/\\n$/, '');
     // First escape special characters
@@ -66,12 +93,12 @@
             <td class="px-4 py-2">
               {#if column === 'similarity' && row[column] !== undefined}
                 {(row[column] * 100).toFixed(1)}%
-              {:else if column === textColumn}
-                {@html sanitizeAndFormatText(row[column] || '')}
-              {:else if is_link(row[column])}
-                {@html linkify(row[column])}
+              {:else if column === textColumn || sanitizePropertyName(column) === textColumn}
+                {@html sanitizeAndFormatText(row[column]  || row[sanitizePropertyName(column)]  || '')}
+              {:else if is_link(row[column]  || row[sanitizePropertyName(column)] )}
+                {@html linkify(row[column]  || row[sanitizePropertyName(column)] )}
               {:else}
-                {(row[column]) || ''}
+                {row[column] || row[sanitizePropertyName(column)] || ''}
               {/if}
             </td>
           {/each}
