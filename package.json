@@ -1,6 +1,6 @@
 {
 	"name": "@meaningfully/ui",
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"license": "MIT",
 	"description": "Svelte components for meaningfully semantic search",
 	"repo": "https://github.com/jeremybmerrill/meaningfully-ui",

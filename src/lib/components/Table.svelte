@@ -23,7 +23,12 @@
 
 
   // copied from https://github.com/run-llama/LlamaIndexTS/blob/main/packages/providers/storage/weaviate/src/sanitize.ts
-  const sanitizePropertyName = (name: string): string => {
+  // weaviate requires property names (i.e. metadata column names) to start with a lowercase letter or underscore,
+  // and only contain letters, numbers, and underscores.
+  // If weaviate is used as the vector store, metadata column names will be sanitized on upload,
+  // so we need to look for the sanitized version when displaying results.
+  // If another store is used, the original names will be preserved, and so this won't get called.
+  const sanitizePropertyNameForWeaviate = (name: string): string => {
     // Replace invalid characters with underscores
     let sanitized = name.replace(/[^_A-Za-z0-9]/g, "_");
 
@@ -93,12 +98,12 @@
             <td class="px-4 py-2">
               {#if column === 'similarity' && row[column] !== undefined}
                 {(row[column] * 100).toFixed(1)}%
-              {:else if column === textColumn || sanitizePropertyName(column) === textColumn}
-                {@html sanitizeAndFormatText(row[column]  || row[sanitizePropertyName(column)]  || '')}
-              {:else if is_link(row[column]  || row[sanitizePropertyName(column)] )}
-                {@html linkify(row[column]  || row[sanitizePropertyName(column)] )}
+              {:else if column === textColumn || sanitizePropertyNameForWeaviate(column) === textColumn}
+                {@html sanitizeAndFormatText(row[column]  || row[sanitizePropertyNameForWeaviate(column)]  || '')}
+              {:else if is_link(row[column]  || row[sanitizePropertyNameForWeaviate(column)] )}
+                {@html linkify(row[column]  || row[sanitizePropertyNameForWeaviate(column)] )}
               {:else}
-                {row[column] || row[sanitizePropertyName(column)] || ''}
+                {row[column] || row[sanitizePropertyNameForWeaviate(column)] || ''}
               {/if}
             </td>
           {/each}

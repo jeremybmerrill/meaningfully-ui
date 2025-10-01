@@ -28,6 +28,11 @@
   };
 
   // copied from https://github.com/run-llama/LlamaIndexTS/blob/main/packages/providers/storage/weaviate/src/sanitize.ts
+  // weaviate requires property names (i.e. metadata column names) to start with a lowercase letter or underscore,
+  // and only contain letters, numbers, and underscores.
+  // If weaviate is used as the vector store, metadata column names will be sanitized on upload,
+  // so we need to look for the sanitized version when displaying results.
+  // If another store is used, the original names will be preserved, and so this won't get called.
   const sanitizePropertyName = (name: string): string => {
     // Replace invalid characters with underscores
     let sanitized = name.replace(/[^_A-Za-z0-9]/g, "_");
