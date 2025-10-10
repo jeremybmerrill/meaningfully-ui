@@ -11,13 +11,14 @@
 
   interface Props {
     api: MeaningfullyAPI;
+    basePath: string;
   }
-  let { api }: Props = $props();
-
-  let url = $state("");
+  let { api, basePath }: Props = $props();
+ 
+  let url = $state(basePath || '');
   // Ensure $state returns Settings | null
   let settings = $state<Settings | null>(null);
-
+  console.log("basePath", basePath);
   const getSettings = async () => {
       try {
           settings = await api.getSettings();

@@ -11,10 +11,11 @@
 
   interface Props {
     api: MeaningfullyAPI;
+    basePath: string;
   }
-  let { api }: Props = $props();
+  let { api, basePath }: Props = $props();
 
-  let url = $state("");
+  let url = $state(basePath || '');
   // Ensure $state returns Settings | null
   let settings = $state<Settings | null>(null);
 
