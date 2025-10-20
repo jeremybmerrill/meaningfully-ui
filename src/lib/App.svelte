@@ -14,8 +14,10 @@
     basePath: string;
   }
   let { api, basePath }: Props = $props();
-
-  let url = $state(basePath || '');
+  
+  let basepath = $state(basePath || '');
+  console.log("basepath App", basepath);
+  let url = $state('');
   // Ensure $state returns Settings | null
   let settings = $state<Settings | null>(null);
 
@@ -43,7 +45,7 @@
 
 <!-- <img alt="logo" class="logo" src={electronLogo} /> -->
 
-<Router url={url} >
+<Router url={url} basepath={basepath}>
   <Link to="/">
     <h1 class="text-2xl font-bold">
       Meaningfully

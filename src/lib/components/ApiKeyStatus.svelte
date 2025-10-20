@@ -10,7 +10,7 @@
 
 {#if !validApiKeysSet }
     <div class="alert alert-warning" data-testid="api-key-status">
-        <p>No OpenAI API key is set. Please <Link to="/settings" class="text-blue text-decoration-line"><span class="text-blue text-decoration-line">add one</span></Link> (or details for another provider) in order to use Meaningfully.</p>
+        <p>No OpenAI API key is set. Please <Link to="settings" class="text-blue text-decoration-line"><span class="text-blue text-decoration-line">add one</span></Link> (or details for another provider) in order to use Meaningfully.</p>
     </div>
 {/if}
 
