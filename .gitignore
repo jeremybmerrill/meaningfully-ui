@@ -7,7 +7,7 @@ node_modules
 .wrangler
 /.svelte-kit
 /build
-dist/ # temporarily include dist for github installs.
+dist/
 
 # OS
 .DS_Store
