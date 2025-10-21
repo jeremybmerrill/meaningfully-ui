@@ -24,14 +24,14 @@
         </p>
     </section>
     <section>
-        <h2> a CSV</h2>
+        <h2>Upload a CSV</h2>
         <p>
             You can select a CSV from your computer to "upload" it to Meaningfully. Then, select one column
             from the CSV to search semantically, and any number of other columns to be shown alongside it in results.
         </p>
         <p>
             Once you upload the CSV, each entry in the chosen column will be embedded, with the results stored on your
-            computer. If you choose a remote embedding API -- like OpenAI's text-embedding-small or text-embedding-large --
+            computer. If you choose a remote embedding API (like OpenAI's text-embedding-small or text-embedding-large)
             then the entries in your column will be sent
             to that service; if you choose a local one, then the data will not leave your computer.
         </p>

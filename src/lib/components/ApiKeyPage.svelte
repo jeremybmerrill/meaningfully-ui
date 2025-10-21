@@ -1,6 +1,6 @@
 <script lang="ts">
     import { navigate } from 'svelte-routing'
-    import type { MeaningfullyAPI } from '../types';
+    import type { MeaningfullyAPI } from '../types.js';
 
     interface Props {
         settings: Settings;
