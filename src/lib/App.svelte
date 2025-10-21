@@ -70,7 +70,9 @@
     <Route path="search/:id" let:params>
       <SearchPage validApiKeysSet={validApiKeysSet} documentSetId={Number(params.id)} api={api} />
     </Route>
-    <Route path="help" component={HelpPage} />
+    <Route path="help">
+      <HelpPage />
+    </Route>
     <Route path="settings">
       {#if settings}
         <ApiKeyPage settings={settings} settingsUpdated={() => getSettings() } api={api} />
