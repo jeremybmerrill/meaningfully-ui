@@ -143,11 +143,12 @@
           [selectedTextColumn]: result.text
         }));
       } else {
-        error = 'Preview generation failed';
+        error = previewResponse.message || 'Preview generation failed'; // fastify responses don't throw
+
         console.error('Preview generation failed:', previewResponse);
       }
     } catch (e: any) {
-      error = e.message;
+      error = e.message; // electron errors throw
     } finally {
       generatingPreview = false;
     }
@@ -188,9 +189,9 @@
       if (uploadResponse.success) {
         navigate("/search/" + uploadResponse.documentSetId);
       } else {
-        error = 'Upload failed';
+        error = uploadResponse.message || 'Upload failed'; // fastify responses don't throw
       }
-    } catch (e: any) {
+    } catch (e: any) {                                     // in Electron, errors throw
       error = e.message;
     } finally {
       uploading = false;
