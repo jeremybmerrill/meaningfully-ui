@@ -11,12 +11,14 @@
 
   interface Props {
     api: MeaningfullyAPI;
-    basePath: string;
+    basePath_prop: string;
   }
-  let { api, basePath }: Props = $props();
+  let { api, basePath_prop }: Props = $props();
   
-  let basepath = $state(basePath || '');
-  console.log("basepath App", basepath);
+  // basepath must not be blank;
+  // unclear if it needs a trailing slash when using a subpath.
+  let basepath = $state(basePath_prop || '/');
+  console.log(`basepath App "${basepath}" (prop: "${basePath_prop}")`);
   let url = $state('');
   // Ensure $state returns Settings | null
   let settings = $state<Settings | null>(null);

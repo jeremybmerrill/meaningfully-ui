@@ -7,6 +7,7 @@
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build && npm run prepack",
+		"watch": "vite build --watch",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync && npm run build",
 		"prepack": "svelte-kit sync && svelte-package && publint",
