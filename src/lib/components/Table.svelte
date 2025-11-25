@@ -99,7 +99,9 @@
               {#if column === 'similarity' && row[column] !== undefined}
                 {(row[column] * 100).toFixed(1)}%
               {:else if column === textColumn || sanitizePropertyNameForWeaviate(column) === textColumn}
-                {@html sanitizeAndFormatText(row[column]  || row[sanitizePropertyNameForWeaviate(column)]  || '')}
+                <span class="font-thin text-sm">{@html row["beforeContext"] ? sanitizeAndFormatText(row["beforeContext"] ) : '' }</span>
+                <span>{@html sanitizeAndFormatText(row[column]  || row[sanitizePropertyNameForWeaviate(column)]  || '') }</span>
+                <span class="font-thin text-sm">{@html row["afterContext"] ? sanitizeAndFormatText(row["afterContext"] ) : '' }</span>
               {:else if is_link(row[column]  || row[sanitizePropertyNameForWeaviate(column)] )}
                 {@html linkify(row[column]  || row[sanitizePropertyNameForWeaviate(column)] )}
               {:else}

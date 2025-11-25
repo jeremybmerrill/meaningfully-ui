@@ -68,7 +68,9 @@
         ...result.metadata, // flatten the metadata so that this object is the same shape as a CSV row.
         similarity: result.score.toFixed(2),
         [textColumn]: result.text,
-        sourceNodeId: result.sourceNodeId
+        sourceNodeId: result.sourceNodeId,
+        beforeContext: result.beforeContext,
+        afterContext: result.afterContext,
       })); 
       error = null; 
     } catch (error_: any) {
