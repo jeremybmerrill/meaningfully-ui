@@ -35,7 +35,7 @@
       totalDocuments = result.total;
       totalPages = Math.ceil(totalDocuments / pageSize);
     } catch (e) {
-      error = e instanceof Error ? e.message : 'Failed to load document sets';
+      error = e instanceof Error ? e.message : 'Failed to load list of spreadsheets';
     } finally {
       loading = false;
     }
@@ -48,7 +48,7 @@
         await api.deleteDocumentSet(documentSetId);
         await loadDocumentSets(currentPage);
       } catch (e) {
-        error = e instanceof Error ? e.message : 'Failed to delete document set';
+        error = e instanceof Error ? e.message : 'Failed to delete spreadsheet';
       }
     }
   }
@@ -87,7 +87,7 @@
   <div class="my-10 bg-white p-6 rounded-lg shadow space-y-6 text-black" data-testid="existing-spreadsheets">
     <h2 class="text-2xl font-bold">Existing Spreadsheets</h2>
     {#if documentSets.length === 0}
-      <p class="text-gray-500">No spreadsheets found. Upload one to get started.</p>
+      <p class="text-gray-500">No spreadsheets found. Upload a CSV to get started.</p>
     {:else}
       <div class="overflow-x-auto">
         <table class="min-w-full table-auto">
@@ -96,7 +96,7 @@
               <th class="px-4 py-2 text-left">Name</th>
               <th class="px-4 py-2 text-left">Upload Date</th>
               <th class="px-4 py-2 text-left">Documents</th>
-              <th class="px-4 py-2 text-left">Parameters</th>
+              <th class="px-4 py-2 text-left">Details and Settings</th>
               <th class="px-4 py-2 text-left"><span class="sr-only">Actions</span></th>
             </tr>
           </thead>
@@ -121,7 +121,7 @@
                 <td class="px-4 py-2">
                   {#if Object.keys(set.parameters).length > 0}
                     <details>
-                      <summary class="cursor-pointer text-sm text-blue-600">View Parameters</summary>
+                      <summary class="cursor-pointer text-sm text-blue-600">See Details</summary>
                       <pre class="mt-2 p-2 bg-gray-50 rounded text-sm">{JSON.stringify(set.parameters, null, 2)}</pre>
                     </details>
                   {:else}

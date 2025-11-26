@@ -112,7 +112,7 @@
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
       </svg>
-      <span>Back to Document Sets</span>
+      <span>Back to Home</span>
     </button>
   </div>
 
@@ -131,19 +131,15 @@
     <div class="space-y-4 max-w-3xl">
       <!-- Search Input -->
       <div class="space-y-2">
-        <label for="search" class="block text-sm font-medium text-gray-700">
+        <label for="search" class="block text-sm font-medium text-gray-300">
           Semantic Search
         </label>
-        <p class="text-xs text-gray-500">
-          Imagine the perfect document that you hope might exist in your spreadsheet. Type it here. Meaningfully will find the real documents that mean 
-          about the same thing -- even if they have no keywords in common.
-        </p>
         <div class="flex space-x-4">
           <input
             id="search"
             type="text"
             bind:value={searchQuery}
-            placeholder={placeholderQuery}
+            placeholder={"... " + placeholderQuery}
             data-testid="search-bar"
             class="flex-1 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
           />
@@ -156,13 +152,17 @@
             {loading ? 'Searching...' : 'Search'}
           </button>
         </div>
+        <p class="text-xs text-gray-500">
+          Need a hint? Imagine the perfect document that you hope might exist in your spreadsheet. Type it here. Meaningfully will find the real documents that mean 
+          about the same thing -- even if they have no keywords in common.
+        </p>
       </div>
 
       <!-- Metadata Filters -->
       {#if metadataColumns.length > 0}  
       <div class="space-y-2">
-        <p class="block text-sm font-medium text-gray-700">
-          Search only records that match...
+        <p class="block text-sm font-medium text-gray-300">
+          Use filters to search a subset of rows in your spreadsheet.
         </p>
         <div class="space-y-4">
           {#each metadataFilters as filter, index}
@@ -224,6 +224,8 @@
           originalDocumentClick={handleOriginalDocumentClick}
           />
       </div>
+    {:else}
+      <div class="text-gray-500">You won't find any results unless you search</div>
     {/if}
   {/if}
 </div>
