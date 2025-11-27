@@ -11,14 +11,14 @@
 
   interface Props {
     api: MeaningfullyAPI;
-    basePath_prop: string;
+    basepath: string;
   }
-  let { api, basePath_prop }: Props = $props();
+  let { api, basepath }: Props = $props();
   
   // basepath must not be blank;
   // unclear if it needs a trailing slash when using a subpath.
-  let basepath = $state(basePath_prop || '/');
-  console.log(`basepath App "${basepath}" (prop: "${basePath_prop}")`);
+  let basepath_app = $state(basepath || '/');
+  console.log(`basepath App "${basepath_app}" (prop: "${basepath}")`);
   let url = $state('');
   // Ensure $state returns Settings | null
   let settings = $state<Settings | null>(null);
@@ -47,7 +47,7 @@
 
 <!-- <img alt="logo" class="logo" src={electronLogo} /> -->
 
-<Router url={url} basepath={basepath}>
+<Router url={url} basepath={basepath_app}>
   <Link to="/">
     <h1 class="text-2xl font-bold">
       Meaningfully
