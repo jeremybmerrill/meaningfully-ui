@@ -4,7 +4,8 @@
   import { fileDataStore } from '../stores/fileDataStore.js';
 
   let {
-    validApiKeysSet
+    validApiKeysSet,
+    basepath
   } = $props();
 
   let error = $state('');
@@ -57,7 +58,8 @@
             fileContent
           });
           // Navigate to configuration page
-          navigate('/configure-upload');
+          navigate(basepath.replace(/\/+$/g, "") + "/configure-upload");
+
         };
         reader.readAsDataURL(file);
       },

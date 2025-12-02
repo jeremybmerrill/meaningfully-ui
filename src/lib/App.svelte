@@ -64,20 +64,20 @@
 
   <main class="container mx-auto px-4 py-8">
     <Route path="">
-      <FrontPage validApiKeysSet={validApiKeysSet} api={api} />
+      <FrontPage validApiKeysSet={validApiKeysSet} api={api} basepath={basepath_app} />
     </Route>
     <Route path="configure-upload">
-      <DatabaseConfig validApiKeysSet={validApiKeysSet} api={api} />
+      <DatabaseConfig validApiKeysSet={validApiKeysSet} api={api} basepath={basepath_app} />
     </Route>
     <Route path="search/:id" let:params>
-      <SearchPage validApiKeysSet={validApiKeysSet} documentSetId={Number(params.id)} api={api} />
+      <SearchPage validApiKeysSet={validApiKeysSet} documentSetId={Number(params.id)} api={api} basepath={basepath_app} />
     </Route>
     <Route path="help">
       <HelpPage />
     </Route>
     <Route path="settings">
       {#if settings}
-        <ApiKeyPage settings={settings} settingsUpdated={() => getSettings() } api={api} />
+        <ApiKeyPage settings={settings} settingsUpdated={() => getSettings() } api={api} basepath={basepath_app} />
       {/if}
     </Route>
   </main>

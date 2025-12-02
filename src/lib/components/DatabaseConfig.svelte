@@ -13,7 +13,8 @@
 
   let {
     validApiKeysSet,
-    api
+    api,
+    basepath
   } = $props();
 
   let fileData: any = $state(null);
@@ -79,9 +80,9 @@
 
   onMount(() => {
     // Subscribe to the file data store
-    const unsubscribe = fileDataStore.subscribe((data) => {
+    const unsubscribe = fileDataStore.subscribe((data: any) => {
       if (!data) {
-        navigate('/'); // Redirect back to home if no file data
+        navigate(basepath.replace(/\/+$/g, "") + "/"); // Redirect back to home if no file data
         return;
       }
       fileData = data;
@@ -187,7 +188,8 @@
       });
 
       if (uploadResponse.success) {
-        navigate("/search/" + uploadResponse.documentSetId);
+        navigate(basepath.replace(/\/+$/g, "") + "/search/" + uploadResponse.documentSetId);
+
       } else {
         error = uploadResponse.message || 'Upload failed'; // fastify responses don't throw
       }
@@ -237,7 +239,7 @@
   });
 
   const goBack = () => {
-    navigate('/');
+    navigate(basepath.replace(/\/+$/g, "") + "/");
   };
 </script>
 

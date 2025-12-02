@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { navigate } from 'svelte-routing';
+  import { navigate, Link } from 'svelte-routing';
   import type { DocumentSet, MeaningfullyAPI } from '../types.js';
   import Results from './Results.svelte';
 
@@ -7,9 +7,10 @@
     validApiKeysSet: boolean;
     documentSetId: number;
     api: MeaningfullyAPI;
+    basepath: string;
   }
 
-  let { validApiKeysSet, documentSetId, api }: Props = $props();
+  let { validApiKeysSet, documentSetId, api, basepath }: Props = $props();
 
   let documentSet: DocumentSet | null = $state(null);
   let documentSetLoading = $state(true);
@@ -36,7 +37,7 @@
     documentSetLoading = false;
   }).catch(error => {
     console.error('Error fetching document set:', error);
-    navigate('/');
+    navigate(basepath.replace(/\/+$/g, "") + "/");
   });
 
   const placeholderQueries = [
@@ -105,15 +106,15 @@
 
 <div class="p-6 space-y-6">
   <div class="flex items-center space-x-4">
-    <button 
+    <Link 
       class="text-blue-500 hover:text-blue-600 flex items-center space-x-1"
-      onclick={() => navigate('/') }
+      to=""
     >
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
       </svg>
       <span>Back to Home</span>
-    </button>
+    </Link>
   </div>
 
   {#if documentSetLoading}
