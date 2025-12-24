@@ -29,14 +29,9 @@
   let chunkSize = $state(defaultChunkSize);
   let chunkOverlap = $state(defaultChunkOverlap);
   
-  // Model options grouped by provider
-  const modelOptions: Record<string, string[]> = {
-    "openai": ["text-embedding-3-small", "text-embedding-3-large"],
-    "azure": ["text-embedding-3-small", "text-embedding-3-large"],
-    "ollama": ["mxbai-embed-large", "nomic-embed-text"],
-    "mistral": ["mistral-embed"],
-    "gemini": ["gemini-embedding-001"]
-  };
+  // Model options grouped by provider - fetched from API
+  let availableModelOptions: Record<string, string[]> = $state({});
+  let allModelOptions: Record<string, string[]> = $state({});
   
   let modelProvider = $state("openai");
   let modelName = $state("text-embedding-3-small");
@@ -50,8 +45,8 @@
   
   // Update model name when provider changes
   $effect(() => {
-    if (modelProvider && modelOptions[modelProvider]) {
-      modelName = modelOptions[modelProvider][0];
+    if (modelProvider && availableModelOptions[modelProvider]) {
+      modelName = availableModelOptions[modelProvider][0];
     }
   });
 
@@ -78,7 +73,23 @@
     return result;
   };
 
-  onMount(() => {
+  onMount(async () => {
+    // Fetch available model options from API
+    try {
+      const modelOptionsData = await api.getAvailableModelOptions();
+      availableModelOptions = modelOptionsData.availableModelOptions;
+      allModelOptions = modelOptionsData.allModelOptions;
+      
+      // Set default provider to first available one
+      const availableProviders = Object.keys(availableModelOptions);
+      if (availableProviders.length > 0) {
+        modelProvider = availableProviders[0];
+        modelName = availableModelOptions[modelProvider][0];
+      }
+    } catch (e) {
+      console.error('Error fetching available model options:', e);
+    }
+
     // Subscribe to the file data store
     const unsubscribe = fileDataStore.subscribe((data: any) => {
       if (!data) {
@@ -284,15 +295,15 @@
           <select
             bind:value={modelProvider}
             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500">
-            <option value="openai">OpenAI</option>
-            <option value="azure">Azure OpenAI</option>
-            <option value="ollama">Ollama</option>
-            <option value="mistral">Mistral AI</option>
-            <option value="gemini">Google Gemini</option>
+            <option value="openai" disabled={!availableModelOptions.openai}>OpenAI</option>
+            <option value="azure" disabled={!availableModelOptions.azure}>Azure OpenAI</option>
+            <option value="ollama" disabled={!availableModelOptions.ollama}>Ollama</option>
+            <option value="mistral" disabled={!availableModelOptions.mistral}>Mistral AI</option>
+            <option value="gemini" disabled={!availableModelOptions.gemini}>Google Gemini</option>
           </select>
         </label>  
         <p class="text-xs text-gray-500">
-          The provider for the embedding model.
+          The provider for the embedding model. {Object.keys(availableModelOptions).length === 0 ? 'No providers are configured yet. Please set up API keys in the settings.' : ''}
         </p>
       </div>
       
@@ -301,8 +312,9 @@
           What embedding model should we use?
           <select
             bind:value={modelName}
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500">
-            {#each modelOptions[modelProvider] as modelNameChoice}
+            disabled={!availableModelOptions[modelProvider]}
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500 disabled:opacity-50 disabled:cursor-not-allowed">
+            {#each (availableModelOptions[modelProvider] || allModelOptions[modelProvider] || []) as modelNameChoice}
               <option value={modelNameChoice}>{modelNameChoice}</option>
             {/each}
           </select>

@@ -35,4 +35,8 @@ export interface MeaningfullyAPI {
     deleteDocumentSet: (documentSetId: number) => Promise<void>;
     getDocumentSet: (documentSetId: number) => Promise<DocumentSet>;
     getUploadProgress: () => Promise<{ progress: number, total: number, elapsedTimeMs: number, estimatedTimeRemainingMs: number | null }>;
+    getAvailableModelOptions: () => Promise<{
+      availableModelOptions: Record<string, string[]>;
+      allModelOptions: Record<string, string[]>;
+    }>;
 }
