@@ -254,7 +254,7 @@
           {/each}
         </tbody>
       </table>
-      <button class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" onclick={closeModal}>Close</button>
+      <button data-testid="modal-close-button" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" onclick={closeModal}>Close</button>
     </div>
   </div>
 {/if}
