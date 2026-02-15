@@ -15,6 +15,67 @@ export interface DocumentSetMetadata {
   totalDocuments: number;
 }
 
+export interface SearchResult {
+  text: string;
+  score: number;
+  metadata: Record<string, any>;
+  sourceNodeId?: string;
+}
+
+export interface Settings {
+  openAIKey: string | null;
+  oLlamaBaseURL: string | null;
+  azureOpenAIKey: string | null;
+  azureOpenAIEndpoint: string | null;
+  azureOpenAIApiVersion: string | null;
+  mistralApiKey: string | null;
+  geminiApiKey: string | null;
+}
+
+export interface BaseUploadFormData {
+  datasetName: string;
+  description: string;
+  textColumns: string[];
+  metadataColumns: string[];
+  splitIntoSentences: boolean;
+  combineSentencesIntoChunks: boolean;
+  sploderMaxSize: number;
+  chunkSize: number;
+  chunkOverlap: number;
+  modelName: string;
+  modelProvider: string;
+}
+
+export interface UploadFormData extends BaseUploadFormData {
+  fileContent: string;
+  fileName: string;
+}
+
+export interface TopicDefinition {
+  name: string;
+  keywords: string[];
+  color?: string;
+}
+
+export interface EmbeddingMapPoint {
+  id: string;
+  text: string;
+  metadata: Record<string, any>;
+  topic: string;
+  x: number;
+  y: number;
+}
+
+export interface EmbeddingMapResponse {
+  method: 'pacmap' | 'umap' | 'tsne';
+  points: EmbeddingMapPoint[];
+  stats: {
+    total: number;
+    missingEmbeddings: number;
+    usedWeaviate: boolean;
+  };
+}
+
 export interface MeaningfullyAPI {
     listDocumentSets: (page: number, pageSize: number) => Promise<{documents: DocumentSetMetadata[], total: number}> ,
     uploadCsv: (formData: UploadFormData) => Promise<{ success: boolean, documentSetId: number }>,
@@ -39,4 +100,9 @@ export interface MeaningfullyAPI {
       availableModelOptions: Record<string, string[]>;
       allModelOptions: Record<string, string[]>;
     }>;
+    getEmbeddingMap: (params: {
+      documentSetId: number;
+      method: 'pacmap' | 'umap' | 'tsne';
+      topics?: TopicDefinition[];
+    }) => Promise<EmbeddingMapResponse>;
 }

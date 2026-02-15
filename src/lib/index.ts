@@ -11,5 +11,6 @@ import Preview from './components/Preview.svelte';
 import Results from './components/Results.svelte';
 import SearchPage from './components/SearchPage.svelte';
 import Table from './components/Table.svelte';
+import EmbeddingMap from './components/EmbeddingMap.svelte';
 
-export { App, ApiKeyPage, ApiKeyStatus, CsvUpload, DatabaseConfig, ExistingDatabases, FrontPage, HelpPage, Preview, Results, SearchPage, Table };
+export { App, ApiKeyPage, ApiKeyStatus, CsvUpload, DatabaseConfig, ExistingDatabases, FrontPage, HelpPage, Preview, Results, SearchPage, Table, EmbeddingMap };

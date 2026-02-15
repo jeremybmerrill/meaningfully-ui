@@ -2,6 +2,7 @@
   import { navigate, Link } from 'svelte-routing';
   import type { DocumentSet, MeaningfullyAPI } from '../types.js';
   import Results from './Results.svelte';
+  import EmbeddingMap from './EmbeddingMap.svelte';
 
   interface Props {
     validApiKeysSet: boolean;
@@ -214,6 +215,19 @@
         {error}
       </div>
     {/if}
+
+    <div class="my-8">
+      <div class="bg-white rounded-lg shadow text-black p-5 space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-xl font-semibold">Map this dataset</h3>
+            <p class="text-sm text-gray-600">Project the embeddings to 2D with PacMAP / UMAP / t-SNE and color by topics.</p>
+          </div>
+        </div>
+        <EmbeddingMap documentSetId={documentSet.documentSetId} api={api} />
+      </div>
+    </div>
+
     {#if (searchQuery != blankSearchQuery || metadataFilters.length > 0) && hasResults}
       <!-- Wrap Results component for easier selection -->
       <div data-testid="results">
