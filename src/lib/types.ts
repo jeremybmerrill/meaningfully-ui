@@ -23,12 +23,13 @@ export interface MeaningfullyAPI {
       documentSetId: number;
       query: string;
       n_results: number;
+      offset?: number;
       filters?: { 
         key: string, 
         operator: "==" | "in" | ">" | "<" | "!=" | ">=" | "<=" | "nin" | "any" | "all" | "text_match" | "contains" | "is_empty", 
         value: any 
       }[];
-    }) => Promise<SearchResult[]>;
+    }) => Promise<{ results: SearchResult[]; hasMore: boolean }>;
     getDocument: (params: {documentSetId: number, documentId: string}) => Promise<{ text: string, metadata: Record<string, any> }>;
     getSettings: () => Promise<Settings>;
     setSettings: (settings: Settings) => Promise<{success: boolean}>;

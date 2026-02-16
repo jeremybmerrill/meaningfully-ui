@@ -17,7 +17,9 @@
   let metadataColumns: string[] = $state([]);
   let textColumn: string = $state('');
   let loading = $state(false);
+  let loadingMore = $state(false);
   let hasResults = $state(false);
+  let hasMore = $state(false);
   let showModal = $state(false);
   let modalContent: Record<string, any> | null = $state(null);
 
@@ -27,6 +29,8 @@
 
   let results: Array<Record<string, any>> = $state([]);
   let error: string | null = $state(null);
+
+  const pageSize = 10;
 
   api.getDocumentSet(documentSetId).then((receivedDocumentSet: DocumentSet) => {
     documentSet = receivedDocumentSet;
@@ -50,33 +54,71 @@
   ];
   const placeholderQuery = placeholderQueries[Math.floor(Math.random() * placeholderQueries.length)];
 
+  const mapSearchResults = (searchResults: Array<Record<string, any>>) => {
+    return searchResults.map(result => ({ // TODO Factor this out if preview and search use the same data structure.
+      ...result.metadata, // flatten the metadata so that this object is the same shape as a CSV row.
+      similarity: result.score,
+      [textColumn]: result.text,
+      sourceNodeId: result.sourceNodeId
+    }));
+  };
+
   async function handleSearch() {
     if (!searchQuery.trim() || !documentSet) return;
     hasResults = true;
     loading = true;
+    hasMore = false;
     try {
-      const searchResults = await api.searchDocumentSet({
+      const searchResponse = await api.searchDocumentSet({
         documentSetId: documentSet.documentSetId,
         query: searchQuery,
-        n_results: 100,
+        n_results: pageSize,
+        offset: 0,
         filters: metadataFilters.map(filter => ({
           key: filter.key,
           operator: filter.operator,
           value: filter.value
         }))
       });
-      results = searchResults.map(result => ({ // TODO Factor this out if preview and search use the same data structure.
-        ...result.metadata, // flatten the metadata so that this object is the same shape as a CSV row.
-        similarity: result.score.toFixed(2),
-        [textColumn]: result.text,
-        sourceNodeId: result.sourceNodeId
-      })); 
+      results = mapSearchResults(searchResponse.results);
+      hasMore = searchResponse.hasMore;
       error = null; 
     } catch (error_: any) {
       console.error('Search failed:', error_);
-      error = error_;
+      error = error_ instanceof Error ? error_.message : String(error_);
+      results = [];
+      hasMore = false;
     } finally {
       loading = false;
+    }
+  }
+
+  async function handleLoadMore() {
+    if (!documentSet || loadingMore || loading || !hasMore) return;
+
+    loadingMore = true;
+    try {
+      const searchResponse = await api.searchDocumentSet({
+        documentSetId: documentSet.documentSetId,
+        query: searchQuery,
+        n_results: pageSize,
+        offset: results.length,
+        filters: metadataFilters.map(filter => ({
+          key: filter.key,
+          operator: filter.operator,
+          value: filter.value
+        }))
+      });
+
+      const nextRows = mapSearchResults(searchResponse.results);
+      results = [...results, ...nextRows];
+      hasMore = searchResponse.hasMore;
+      error = null;
+    } catch (error_: any) {
+      console.error('Loading more failed:', error_);
+      error = error_ instanceof Error ? error_.message : String(error_);
+    } finally {
+      loadingMore = false;
     }
   }
 
@@ -220,6 +262,9 @@
         <Results
           {results}
           {loading}
+          {loadingMore}
+          {hasMore}
+          showMore={handleLoadMore}
           {textColumn}
           {metadataColumns}
           originalDocumentClick={handleOriginalDocumentClick}
