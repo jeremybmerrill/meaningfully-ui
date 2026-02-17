@@ -72,7 +72,6 @@ export interface EmbeddingMapResponse {
   stats: {
     total: number;
     missingEmbeddings: number;
-    usedWeaviate: boolean;
   };
 }
 

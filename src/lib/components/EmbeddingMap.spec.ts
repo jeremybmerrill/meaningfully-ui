@@ -24,7 +24,6 @@ const sampleResponse = {
   stats: {
     total: 1,
     missingEmbeddings: 0,
-    usedWeaviate: false,
   },
 };
 

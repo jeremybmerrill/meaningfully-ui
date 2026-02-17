@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import Plotly from 'plotly.js-dist-min';
   import type { EmbeddingMapPoint, EmbeddingMapResponse, MeaningfullyAPI, TopicDefinition } from '../types';
 
@@ -28,11 +28,11 @@
   let status: 'idle' | 'loading' | 'error' | 'ready' = $state('idle');
   let points: EmbeddingMapPoint[] = $state([]);
   let stats: EmbeddingMapResponse['stats'] | null = $state(null);
-  let plotDiv: HTMLDivElement;
+  let plotDiv = $state<HTMLDivElement | null>(null);
 
   const palette = ['#6366f1', '#22c55e', '#f97316', '#06b6d4', '#e11d48', '#f59e0b', '#8b5cf6', '#0ea5e9', '#14b8a6'];
 
-  let topicColors = $derived(() => {
+  let topicColors = $derived.by(() => {
     const colorMap = new Map<string, string>();
     topics.forEach((topic, idx) => {
       const key = topic.name.trim() || `Topic ${idx + 1}`;
@@ -42,14 +42,19 @@
     return colorMap;
   });
 
-  let legendCounts = $derived(() => {
+  let legendCounts = $derived.by(() => {
     const counts = new Map<string, number>();
     points.forEach((p) => counts.set(p.topic, (counts.get(p.topic) || 0) + 1));
     return counts;
   });
 
   $effect(() => {
-    renderPlot();
+    loading;
+    points;
+    topicColors;
+    if (!loading) {
+      renderPlot();
+    }
   });
 
   function normalizeTopics(): TopicDefinition[] {
@@ -84,6 +89,8 @@
       status = 'error';
     } finally {
       loading = false;
+      await tick();
+      renderPlot();
     }
   }
 
@@ -95,23 +102,58 @@
     topics = topics.filter((_, i) => i !== idx);
   }
 
+  function wrapHoverText(text: string, maxLineLength = 60, maxLines = 6): string {
+    if (!text) return '';
+    const words = text.replace(/\s+/g, ' ').trim().split(' ');
+    const lines: string[] = [];
+    let currentLine = '';
+
+    for (const word of words) {
+      const candidate = currentLine ? `${currentLine} ${word}` : word;
+      if (candidate.length <= maxLineLength) {
+        currentLine = candidate;
+      } else {
+        if (currentLine) {
+          lines.push(currentLine);
+          if (lines.length >= maxLines) {
+            return `${lines.join('<br>')}…`;
+          }
+        }
+        currentLine = word;
+      }
+    }
+
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+
+    if (lines.length > maxLines) {
+      return `${lines.slice(0, maxLines).join('<br>')}…`;
+    }
+    return lines.join('<br>');
+  }
+
   function renderPlot() {
     if (!plotDiv || !points.length) return;
 
     const colorByTopic = points.map((p) => topicColors.get(p.topic) || '#9ca3af');
+    const wrappedHoverText = points.map((p) => wrapHoverText(p.text));
     const plotData = [
       {
-        type: 'scattergl',
+        type: 'scatter',
         mode: 'markers',
         x: points.map((p) => p.x),
         y: points.map((p) => p.y),
-        text: points.map((p) => p.text),
+        text: wrappedHoverText,
         customdata: points.map((p) => p.topic),
         marker: {
           color: colorByTopic,
           size: 7,
           opacity: 0.8,
           line: { width: 0 }
+        },
+        hoverlabel: {
+          align: 'left',
         },
         hovertemplate: '%{text}<extra>%{customdata}</extra>',
       }
@@ -136,11 +178,11 @@
 <div class="space-y-4">
   <div class="flex flex-wrap gap-4 items-end">
     <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium">Dimensionality reducer</label>
-      <select bind:value={method} class="border rounded px-3 py-2 text-black">
-        <option value="pacmap">PacMAP</option>
+      <label class="text-sm font-medium" for="embedding-map-method">Dimensionality reducer</label>
+      <select id="embedding-map-method" bind:value={method} class="border rounded px-3 py-2 text-black">
         <option value="umap">UMAP</option>
         <option value="tsne">t-SNE</option>
+        <option value="pacmap">PacMAP</option>
       </select>
     </div>
     <button class="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50" onclick={generateMap} disabled={loading} aria-busy={loading}>
