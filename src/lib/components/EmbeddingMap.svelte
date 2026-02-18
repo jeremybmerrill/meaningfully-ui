@@ -16,7 +16,7 @@
 
   let { documentSetId, api }: Props = $props();
 
-  let method: 'pacmap' | 'umap' | 'tsne' = $state('pacmap');
+  let method: 'umap' | 'tsne' = $state('umap');
   let topics: TopicRow[] = $state([
     { name: 'People', keywords: 'ceo, founder, employee, manager' },
     { name: 'Money', keywords: 'cost, price, dollars, budget' },
@@ -78,7 +78,7 @@
         method,
         topics: payloadTopics.map(({ color, ...rest }) => rest),
       });
-      points = response.points.map((p) => ({
+      points = response.points.map((p: any ) => ({
         ...p,
         topic: p.topic || 'Uncategorized'
       }));
@@ -100,6 +100,27 @@
 
   function removeTopic(idx: number) {
     topics = topics.filter((_, i) => i !== idx);
+  }
+
+  function classifyTextTopic(text: string, topicDefs: TopicDefinition[]): string {
+    for (const topic of topicDefs) {
+      if (!topic.keywords.length) continue;
+      const pattern = topic.keywords.map((k: string) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+      const regex = new RegExp(pattern, 'i');
+      if (regex.test(text ?? '')) {
+        return topic.name;
+      }
+    }
+    return 'Uncategorized';
+  }
+
+  function reclassifyExistingMap() {
+    if (!points.length) return;
+    const payloadTopics = normalizeTopics().map(({ color, ...rest }) => rest);
+    points = points.map((point) => ({
+      ...point,
+      topic: classifyTextTopic(point.text ?? '', payloadTopics),
+    }));
   }
 
   function wrapHoverText(text: string, maxLineLength = 60, maxLines = 6): string {
@@ -146,6 +167,7 @@
         y: points.map((p) => p.y),
         text: wrappedHoverText,
         customdata: points.map((p) => p.topic),
+        showTickLabels: false,
         marker: {
           color: colorByTopic,
           size: 7,
@@ -182,11 +204,17 @@
       <select id="embedding-map-method" bind:value={method} class="border rounded px-3 py-2 text-black">
         <option value="umap">UMAP</option>
         <option value="tsne">t-SNE</option>
-        <option value="pacmap">PacMAP</option>
       </select>
     </div>
     <button class="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50" onclick={generateMap} disabled={loading} aria-busy={loading}>
       {loading ? 'Building map...' : 'Build map'}
+    </button>
+    <button
+      class="px-4 py-2 bg-white border border-gray-300 text-gray-800 rounded disabled:opacity-50"
+      onclick={reclassifyExistingMap}
+      disabled={loading || points.length === 0}
+    >
+      Reapply topics
     </button>
     <div class="text-sm text-gray-600 min-h-[1.5rem] flex items-center gap-2">
       {#if status === 'loading'}
@@ -203,9 +231,10 @@
 
   <div class="space-y-2">
     <div class="flex items-center justify-between">
-      <h3 class="text-lg font-semibold">Topics & keywords</h3>
+      <h3 class="text-lg font-semibold">Define your topics</h3>
       <button class="text-blue-600 underline" onclick={addTopic}>Add topic</button>
     </div>
+    <p>As an aid to finding things, define topics with keywords. Each topic will get a color, and texts matching the topic's keywords will get that color. </p>
     <div class="space-y-3">
       {#each topics as topic, idx}
         <div class="grid grid-cols-12 gap-2 items-center">

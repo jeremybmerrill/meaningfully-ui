@@ -28,6 +28,7 @@
 
   let results: Array<Record<string, any>> = $state([]);
   let error: string | null = $state(null);
+  let activeTab: 'results' | 'map' = $state('results');
 
   api.getDocumentSet(documentSetId).then((receivedDocumentSet: DocumentSet) => {
     documentSet = receivedDocumentSet;
@@ -216,32 +217,54 @@
       </div>
     {/if}
 
-    <div class="my-8">
-      <div class="bg-white rounded-lg shadow text-black p-5 space-y-3">
-        <div class="flex items-center justify-between">
-          <div>
-            <h3 class="text-xl font-semibold">Map this dataset</h3>
-            <p class="text-sm text-gray-600">Project the embeddings to 2D with PacMAP / UMAP / t-SNE and color by topics.</p>
-          </div>
+    <div class="my-8 space-y-4">
+      <div class="border-b border-gray-300">
+        <div class="flex items-center gap-2">
+          <button
+            class={`px-4 py-2 text-sm font-medium border-b-2 ${activeTab === 'results' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+            onclick={() => (activeTab = 'results')}
+          >
+            Results
+          </button>
+          <button
+            class={`px-4 py-2 text-sm font-medium border-b-2 ${activeTab === 'map' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+            onclick={() => (activeTab = 'map')}
+          >
+            Semantic Map
+          </button>
         </div>
-        <EmbeddingMap documentSetId={documentSet.documentSetId} api={api} />
       </div>
-    </div>
 
-    {#if (searchQuery != blankSearchQuery || metadataFilters.length > 0) && hasResults}
-      <!-- Wrap Results component for easier selection -->
-      <div data-testid="results">
-        <Results
-          {results}
-          {loading}
-          {textColumn}
-          {metadataColumns}
-          originalDocumentClick={handleOriginalDocumentClick}
-          />
-      </div>
-    {:else}
-      <div class="text-gray-500">You won't find any results unless you search</div>
-    {/if}
+      {#if activeTab === 'results'}
+        {#if (searchQuery != blankSearchQuery || metadataFilters.length > 0) && hasResults}
+          <div data-testid="results">
+            <Results
+              {results}
+              {loading}
+              {textColumn}
+              {metadataColumns}
+              originalDocumentClick={handleOriginalDocumentClick}
+            />
+          </div>
+        {:else}
+          <div class="text-gray-500">You won't find any results unless you search</div>
+        {/if}
+      {:else}
+        <div class="bg-white rounded-lg shadow text-black p-5 space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-xl font-semibold">Map this dataset</h3>
+              <p class="text-sm text-gray-600">Semantic search works by using AI to transform your texts into embeddings, 
+                which are a big list of numbers with the mysterious, magical property of being closer together when the 
+               your texts mean similar things. These embeddings have hundreds of dimensions, but we can reduce it to just 
+                two and make a map, to get a birds-eye view of the dataset.
+              </p>
+            </div>
+          </div>
+          <EmbeddingMap documentSetId={documentSet.documentSetId} api={api} />
+        </div>
+      {/if}
+    </div>
   {/if}
 </div>
 

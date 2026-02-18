@@ -67,7 +67,7 @@ export interface EmbeddingMapPoint {
 }
 
 export interface EmbeddingMapResponse {
-  method: 'pacmap' | 'umap' | 'tsne';
+  method: 'umap' | 'tsne';
   points: EmbeddingMapPoint[];
   stats: {
     total: number;
@@ -101,7 +101,7 @@ export interface MeaningfullyAPI {
     }>;
     getEmbeddingMap: (params: {
       documentSetId: number;
-      method: 'pacmap' | 'umap' | 'tsne';
+      method: 'umap' | 'tsne';
       topics?: TopicDefinition[];
     }) => Promise<EmbeddingMapResponse>;
 }
