@@ -4,7 +4,8 @@
   import { fileDataStore } from '../stores/fileDataStore.js';
 
   let {
-    validApiKeysSet
+    validApiKeysSet,
+    basepath
   } = $props();
 
   let error = $state('');
@@ -57,7 +58,8 @@
             fileContent
           });
           // Navigate to configuration page
-          navigate('/configure-upload');
+          navigate(basepath.replace(/\/+$/g, "") + "/configure-upload");
+
         };
         reader.readAsDataURL(file);
       },
@@ -69,8 +71,10 @@
 </script>
 
 <div class="bg-white p-6 rounded-lg shadow space-y-6 text-black mb-10" data-testid="upload-a-spreadsheet">
-  <h2 class="text-xl font-semibold">Upload A Spreadsheet</h2>
+  <h2 class="text-xl font-semibold mb-[2px]">Upload a Spreadsheet</h2>
   
+  <p class="text-gray-700 text-[10px]">CSVs up to 10,000 rows work great. Those with more than 10,000 rows may be slow or could fail. Modify the CSV beforehand to ensure the CSV has exactly one header row.</p>
+
   <label class="block">
     <span class="sr-only">Choose CSV file</span>
     <input

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { navigate } from 'svelte-routing';
+  import { navigate, Link } from 'svelte-routing';
   import type { DocumentSet, MeaningfullyAPI } from '../types.js';
   import Results from './Results.svelte';
 
@@ -7,16 +7,19 @@
     validApiKeysSet: boolean;
     documentSetId: number;
     api: MeaningfullyAPI;
+    basepath: string;
   }
 
-  let { validApiKeysSet, documentSetId, api }: Props = $props();
+  let { validApiKeysSet, documentSetId, api, basepath }: Props = $props();
 
   let documentSet: DocumentSet | null = $state(null);
   let documentSetLoading = $state(true);
   let metadataColumns: string[] = $state([]);
   let textColumn: string = $state('');
   let loading = $state(false);
+  let loadingMore = $state(false);
   let hasResults = $state(false);
+  let hasMore = $state(false);
   let showModal = $state(false);
   let modalContent: Record<string, any> | null = $state(null);
 
@@ -27,6 +30,8 @@
   let results: Array<Record<string, any>> = $state([]);
   let error: string | null = $state(null);
 
+  const pageSize = 10;
+
   api.getDocumentSet(documentSetId).then((receivedDocumentSet: DocumentSet) => {
     documentSet = receivedDocumentSet;
     documentSet.uploadDate = new Date(documentSet.uploadDate); // convert to Date object, if necessary (SQLite returns date obj, Postgres returns string)
@@ -36,7 +41,7 @@
     documentSetLoading = false;
   }).catch(error => {
     console.error('Error fetching document set:', error);
-    navigate('/');
+    navigate(basepath.replace(/\/+$/g, "") + "/");
   });
 
   const placeholderQueries = [
@@ -49,35 +54,73 @@
   ];
   const placeholderQuery = placeholderQueries[Math.floor(Math.random() * placeholderQueries.length)];
 
-  async function handleSearch() {
-    if (!searchQuery.trim() || !documentSet) return;
-    hasResults = true;
-    loading = true;
-    try {
-      const searchResults = await api.searchDocumentSet({
-        documentSetId: documentSet.documentSetId,
-        query: searchQuery,
-        n_results: 100,
-        filters: metadataFilters.map(filter => ({
-          key: filter.key,
-          operator: filter.operator,
-          value: filter.value
-        }))
-      });
-      results = searchResults.map(result => ({ // TODO Factor this out if preview and search use the same data structure.
+  const mapSearchResults = (searchResults: Array<Record<string, any>>) => {
+    return searchResults.map(result => ({ // TODO Factor this out if preview and search use the same data structure.
         ...result.metadata, // flatten the metadata so that this object is the same shape as a CSV row.
         similarity: result.score.toFixed(2),
         [textColumn]: result.text,
         sourceNodeId: result.sourceNodeId,
         beforeContext: result.beforeContext,
         afterContext: result.afterContext,
-      })); 
+    }));
+  };
+
+  async function handleSearch() {
+    if (!searchQuery.trim() || !documentSet) return;
+    hasResults = true;
+    loading = true;
+    hasMore = false;
+    try {
+      const searchResponse = await api.searchDocumentSet({
+        documentSetId: documentSet.documentSetId,
+        query: searchQuery,
+        n_results: pageSize,
+        offset: 0,
+        filters: metadataFilters.map(filter => ({
+          key: filter.key,
+          operator: filter.operator,
+          value: filter.value
+        }))
+      });
+      results = mapSearchResults(searchResponse.results);
+      hasMore = searchResponse.hasMore;
       error = null; 
     } catch (error_: any) {
       console.error('Search failed:', error_);
-      error = error_;
+      error = error_ instanceof Error ? error_.message : String(error_);
+      results = [];
+      hasMore = false;
     } finally {
       loading = false;
+    }
+  }
+
+  async function handleLoadMore() {
+    if (!documentSet || loadingMore || loading || !hasMore) return;
+
+    loadingMore = true;
+    try {
+      const searchResponse = await api.searchDocumentSet({
+        documentSetId: documentSet.documentSetId,
+        query: searchQuery,
+        n_results: pageSize,
+        offset: results.length,
+        filters: metadataFilters.map(filter => ({
+          key: filter.key,
+          operator: filter.operator,
+          value: filter.value
+        }))
+      });
+
+      const nextRows = mapSearchResults(searchResponse.results);
+      results = [...results, ...nextRows];
+      hasMore = searchResponse.hasMore;
+      error = null;
+    } catch (error_: any) {
+      console.error('Loading more failed:', error_);
+      error = error_ instanceof Error ? error_.message : String(error_);
+    } finally {
+      loadingMore = false;
     }
   }
 
@@ -107,15 +150,15 @@
 
 <div class="p-6 space-y-6">
   <div class="flex items-center space-x-4">
-    <button 
+    <Link 
       class="text-blue-500 hover:text-blue-600 flex items-center space-x-1"
-      onclick={() => navigate('/') }
+      to=""
     >
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
       </svg>
-      <span>Back to Document Sets</span>
-    </button>
+      <span>Back to Home</span>
+    </Link>
   </div>
 
   {#if documentSetLoading}
@@ -133,19 +176,15 @@
     <div class="space-y-4 max-w-3xl">
       <!-- Search Input -->
       <div class="space-y-2">
-        <label for="search" class="block text-sm font-medium text-gray-700">
+        <label for="search" class="block text-sm font-medium text-gray-300">
           Semantic Search
         </label>
-        <p class="text-xs text-gray-500">
-          Imagine the perfect document that you hope might exist in your spreadsheet. Type it here. Meaningfully will find the real documents that mean 
-          about the same thing -- even if they have no keywords in common.
-        </p>
         <div class="flex space-x-4">
           <input
             id="search"
             type="text"
             bind:value={searchQuery}
-            placeholder={placeholderQuery}
+            placeholder={"... " + placeholderQuery}
             data-testid="search-bar"
             class="flex-1 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
           />
@@ -158,13 +197,17 @@
             {loading ? 'Searching...' : 'Search'}
           </button>
         </div>
+        <p class="text-xs text-gray-500">
+          Need a hint? Imagine the perfect document that you hope might exist in your spreadsheet. Type it here. Meaningfully will find the real documents that mean 
+          about the same thing -- even if they have no keywords in common.
+        </p>
       </div>
 
       <!-- Metadata Filters -->
       {#if metadataColumns.length > 0}  
       <div class="space-y-2">
-        <p class="block text-sm font-medium text-gray-700">
-          Search only records that match...
+        <p class="block text-sm font-medium text-gray-300">
+          Use filters to search a subset of rows in your spreadsheet.
         </p>
         <div class="space-y-4">
           {#each metadataFilters as filter, index}
@@ -221,11 +264,16 @@
         <Results
           {results}
           {loading}
+          {loadingMore}
+          {hasMore}
+          showMore={handleLoadMore}
           {textColumn}
           {metadataColumns}
           originalDocumentClick={handleOriginalDocumentClick}
           />
       </div>
+    {:else}
+      <div class="text-gray-500">You won't find any results unless you search</div>
     {/if}
   {/if}
 </div>
@@ -253,7 +301,7 @@
           {/each}
         </tbody>
       </table>
-      <button class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" onclick={closeModal}>Close</button>
+      <button data-testid="modal-close-button" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" onclick={closeModal}>Close</button>
     </div>
   </div>
 {/if}

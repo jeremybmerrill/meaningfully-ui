@@ -6,9 +6,10 @@
         settings: Settings;
         settingsUpdated: () => void;
         api: MeaningfullyAPI;
+        basepath: string;
     }
 
-    let { settings, settingsUpdated, api }: Props = $props();
+    let { settings, settingsUpdated, api, basepath }: Props = $props();
     let openAIKey: string = $state(settings.openAIKey);
     let oLlamaBaseURL: string = $state(settings.oLlamaBaseURL);
     let azureOpenAIKey: string = $state(settings.azureOpenAIKey);
@@ -34,7 +35,7 @@
                 throw new Error('Failed to save settings');
             }
             settingsUpdated();
-            navigate("/");
+            navigate(basepath.replace(/\/+$/g, "") + "/");
         } catch (error) {
             console.error(error);
             alert('Error saving settings');

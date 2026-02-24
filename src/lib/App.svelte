@@ -11,14 +11,14 @@
 
   interface Props {
     api: MeaningfullyAPI;
-    basePath_prop: string;
+    basepath: string;
   }
-  let { api, basePath_prop }: Props = $props();
+  let { api, basepath }: Props = $props();
   
   // basepath must not be blank;
   // unclear if it needs a trailing slash when using a subpath.
-  let basepath = $state(basePath_prop || '/');
-  console.log(`basepath App "${basepath}" (prop: "${basePath_prop}")`);
+  let basepath_app = $state(basepath || '/');
+  console.log(`basepath App "${basepath_app}" (prop: "${basepath}")`);
   let url = $state('');
   // Ensure $state returns Settings | null
   let settings = $state<Settings | null>(null);
@@ -47,7 +47,7 @@
 
 <!-- <img alt="logo" class="logo" src={electronLogo} /> -->
 
-<Router url={url} basepath={basepath}>
+<Router url={url} basepath={basepath_app}>
   <Link to="/">
     <h1 class="text-2xl font-bold">
       Meaningfully
@@ -64,20 +64,20 @@
 
   <main class="container mx-auto px-4 py-8">
     <Route path="">
-      <FrontPage validApiKeysSet={validApiKeysSet} api={api} />
+      <FrontPage validApiKeysSet={validApiKeysSet} api={api} basepath={basepath_app} />
     </Route>
     <Route path="configure-upload">
-      <DatabaseConfig validApiKeysSet={validApiKeysSet} api={api} />
+      <DatabaseConfig validApiKeysSet={validApiKeysSet} api={api} basepath={basepath_app} />
     </Route>
     <Route path="search/:id" let:params>
-      <SearchPage validApiKeysSet={validApiKeysSet} documentSetId={Number(params.id)} api={api} />
+      <SearchPage validApiKeysSet={validApiKeysSet} documentSetId={Number(params.id)} api={api} basepath={basepath_app} />
     </Route>
     <Route path="help">
       <HelpPage />
     </Route>
     <Route path="settings">
       {#if settings}
-        <ApiKeyPage settings={settings} settingsUpdated={() => getSettings() } api={api} />
+        <ApiKeyPage settings={settings} settingsUpdated={() => getSettings() } api={api} basepath={basepath_app} />
       {/if}
     </Route>
   </main>

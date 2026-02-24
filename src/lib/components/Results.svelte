@@ -7,6 +7,9 @@
     textColumn: string;
     metadataColumns?: string[];
     loading?: boolean;
+    hasMore?: boolean;
+    loadingMore?: boolean;
+    showMore?: () => void;
     originalDocumentClick?: (sourceNodeId: string) => void;
   }
 
@@ -15,17 +18,11 @@
     textColumn,
     metadataColumns = [],
     loading = false,
+    hasMore = false,
+    loadingMore = false,
+    showMore = () => {},
     originalDocumentClick = () => {},
   }: Props = $props();
-
-  // Initial number of results to display
-  const initialDisplayCount = 10;
-  let displayCount = $state(initialDisplayCount);
-
-  // Function to load more results
-  const showMore = () => {
-    displayCount += 10;
-  };
 
   // copied from https://github.com/run-llama/LlamaIndexTS/blob/main/packages/providers/storage/weaviate/src/sanitize.ts
   // weaviate requires property names (i.e. metadata column names) to start with a lowercase letter or underscore,
@@ -95,12 +92,12 @@
     link.setAttribute('download', 'results.csv');
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 5000);
   };
 
-  // Computed property for visible results
-  let visibleResults = $derived(results.slice(0, displayCount));
 </script>
 
 <div class="space-y-4">
@@ -111,6 +108,7 @@
         onclick={downloadCSV}
         class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors flex items-center gap-2"
         title="Download results as CSV"
+        data-testid="download-csv"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -131,7 +129,7 @@
   {:else}
     <div class="bg-white rounded-lg shadow text-black">
       <Table
-        data={visibleResults}
+        data={results}
         {textColumn}
         {metadataColumns}
         showSimilarity={true}
@@ -140,13 +138,14 @@
       />
     </div>
     
-    {#if displayCount < results.length}
+    {#if hasMore}
       <div class="flex justify-center mt-4">
         <button
           onclick={showMore}
+          disabled={loadingMore}
           class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
         >
-          Show More
+          {loadingMore ? 'Loading...' : 'Show More'}
         </button>
       </div>
     {/if}
