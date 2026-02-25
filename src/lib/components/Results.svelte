@@ -10,6 +10,7 @@
     hasMore?: boolean;
     loadingMore?: boolean;
     showMore?: () => void;
+    showContext?: boolean;
     originalDocumentClick?: (sourceNodeId: string) => void;
   }
 
@@ -21,6 +22,7 @@
     hasMore = false,
     loadingMore = false,
     showMore = () => {},
+    showContext = false,
     originalDocumentClick = () => {},
   }: Props = $props();
 
@@ -134,6 +136,7 @@
         {metadataColumns}
         showSimilarity={true}
         showShowOriginal={true}
+        {showContext}
         originalDocumentClick={originalDocumentClick}
       />
     </div>

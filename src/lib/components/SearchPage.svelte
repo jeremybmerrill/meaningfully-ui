@@ -20,6 +20,7 @@
   let loadingMore = $state(false);
   let hasResults = $state(false);
   let hasMore = $state(false);
+  let showContext: boolean = $state(false);
   let showModal = $state(false);
   let modalContent: Record<string, any> | null = $state(null);
 
@@ -38,6 +39,7 @@
     metadataColumns = (documentSet.parameters.metadataColumns ?? []) as string[];
     // @ts-ignore
     textColumn = documentSet.parameters.textColumns[0] as string;
+    showContext = (documentSet.parameters.showContext as boolean) ?? false;
     documentSetLoading = false;
   }).catch(error => {
     console.error('Error fetching document set:', error);
@@ -76,6 +78,7 @@
         query: searchQuery,
         n_results: pageSize,
         offset: 0,
+        showContext,
         filters: metadataFilters.map(filter => ({
           key: filter.key,
           operator: filter.operator,
@@ -105,6 +108,7 @@
         query: searchQuery,
         n_results: pageSize,
         offset: results.length,
+        showContext,
         filters: metadataFilters.map(filter => ({
           key: filter.key,
           operator: filter.operator,
@@ -269,6 +273,7 @@
           showMore={handleLoadMore}
           {textColumn}
           {metadataColumns}
+          {showContext}
           originalDocumentClick={handleOriginalDocumentClick}
           />
       </div>

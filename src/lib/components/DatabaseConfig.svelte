@@ -37,6 +37,7 @@
   let modelName = $state("text-embedding-3-small");
   let splitIntoSentences = $state(true);
   let combineSentencesIntoChunks = $state(true);
+  let showContext = $state(false);
   let previewData: Array<Record<string, any>> = $state([]);
   let costEstimate: number = $state(0);
   let tokenCount: number = $state(0);
@@ -143,7 +144,8 @@
         modelName,
         modelProvider,
         chunkSize,
-        chunkOverlap
+        chunkOverlap,
+        showContext
       });
 
       if (previewResponse.success) {
@@ -195,7 +197,8 @@
         chunkSize,
         chunkOverlap,
         modelName,
-        modelProvider
+        modelProvider,
+        showContext
       });
 
       if (uploadResponse.success) {
@@ -393,6 +396,14 @@
                 class="rounded border-gray-300 text-violet-600 shadow-sm focus:border-violet-500 focus:ring-violet-500"
               />
               <span class="ml-2 text-sm text-gray-700">Combine sentences into chunks?</span>
+            </label>
+            <label class="inline-flex items-center">
+              <input
+                type="checkbox"
+                bind:checked={showContext}
+                class="rounded border-gray-300 text-violet-600 shadow-sm focus:border-violet-500 focus:ring-violet-500"
+              />
+              <span class="ml-2 text-sm text-gray-700">Show surrounding context in search results?</span>
             </label>
           </div>
 

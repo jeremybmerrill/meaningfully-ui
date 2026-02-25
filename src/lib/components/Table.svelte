@@ -5,6 +5,7 @@
     metadataColumns?: string[];
     showSimilarity?: boolean;
     showShowOriginal?: boolean;
+    showContext?: boolean;
     originalDocumentClick?: (sourceNodeId: string) => void;
   }
 
@@ -14,6 +15,7 @@
     metadataColumns = [],
     showSimilarity = false,
     showShowOriginal = false,
+    showContext = false,
     originalDocumentClick = () => {},
   }: Props = $props();
 
@@ -99,9 +101,13 @@
               {#if column === 'similarity' && row[column] !== undefined}
                 {(row[column] * 100).toFixed(1)}%
               {:else if column === textColumn || sanitizePropertyNameForWeaviate(column) === textColumn}
-                <span class="font-thin text-sm">{@html row["beforeContext"] ? sanitizeAndFormatText(row["beforeContext"] ) : '' }</span>
+                {#if showContext}
+                  <span class="font-thin text-sm">{@html row["beforeContext"] ? sanitizeAndFormatText(row["beforeContext"] ) : '' }</span>
+                {/if}
                 <span>{@html sanitizeAndFormatText(row[column]  || row[sanitizePropertyNameForWeaviate(column)]  || '') }</span>
-                <span class="font-thin text-sm">{@html row["afterContext"] ? sanitizeAndFormatText(row["afterContext"] ) : '' }</span>
+                {#if showContext}
+                  <span class="font-thin text-sm">{@html row["afterContext"] ? sanitizeAndFormatText(row["afterContext"] ) : '' }</span>
+                {/if}
               {:else if is_link(row[column]  || row[sanitizePropertyNameForWeaviate(column)] )}
                 {@html linkify(row[column]  || row[sanitizePropertyNameForWeaviate(column)] )}
               {:else}

@@ -31,6 +31,7 @@ interface BaseUploadFormData {
   chunkOverlap: number;
   modelName: string;
   modelProvider: string;
+  showContext: boolean;
 }
 
 interface UploadFormData extends BaseUploadFormData {
