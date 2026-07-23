@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, untrack } from 'svelte';
   import { navigate } from 'svelte-routing';
   import { debounce } from 'lodash';
   import Preview from './Preview.svelte';
@@ -42,6 +42,13 @@
   let tokenCount: number = $state(0);
   let pricePer1M: number = $state(0);
   let isCollapsed = $state(true);
+
+  // A small sample of raw (un-chunked) rows from the middle of the file, plus the total
+  // document count -- returned once by generatePreviewData (which reads the whole CSV) so
+  // that later config-only changes (chunk size, splitting, model) can re-preview via
+  // refinePreviewSample instead of re-reading the file every time.
+  let sampleDocs: SampleDocument[] = $state([]);
+  let sampleDocumentCount = $state(0);
   
   // Update model name when provider changes
   $effect(() => {
@@ -154,6 +161,53 @@
           ...result.metadata,
           [selectedTextColumn]: result.text
         }));
+        sampleDocs = previewResponse.sample ?? [];
+        sampleDocumentCount = previewResponse.documentCount ?? 0;
+      } else {
+        error = previewResponse.message || 'Preview generation failed'; // fastify responses don't throw
+
+        console.error('Preview generation failed:', previewResponse);
+      }
+    } catch (e: any) {
+      error = e.message; // electron errors throw
+    } finally {
+      generatingPreview = false;
+    }
+  };
+
+  // Re-chunks the cached sample under the current config, without re-reading the CSV.
+  // estimatedPrice/tokenCount come back extrapolated from the sample rather than exact,
+  // which is the trade-off for not re-transforming the whole file on every slider tweak.
+  const refinePreview = async () => {
+    if (!selectedTextColumn || sampleDocs.length === 0) return;
+
+    try {
+      error = '';
+      generatingPreview = true;
+      const previewResponse = await api.refinePreviewSample({
+        sample: sampleDocs,
+        documentCount: sampleDocumentCount,
+        datasetName,
+        description: 'TK',
+        textColumns: [selectedTextColumn],
+        metadataColumns: selectedMetadataColumns.map(c => c),
+        splitIntoSentences,
+        combineSentencesIntoChunks,
+        sploderMaxSize: 100,
+        modelName,
+        modelProvider,
+        chunkSize,
+        chunkOverlap
+      });
+
+      if (previewResponse.success) {
+        costEstimate = previewResponse.estimatedPrice;
+        tokenCount = previewResponse.tokenCount;
+        pricePer1M = previewResponse.pricePer1M;
+        previewData = previewResponse.nodes.map((result: Record<string, any>) => ({
+          ...result.metadata,
+          [selectedTextColumn]: result.text
+        }));
       } else {
         error = previewResponse.message || 'Preview generation failed'; // fastify responses don't throw
 
@@ -229,25 +283,39 @@
   };
 
   const debouncedGeneratePreview = debounce(generatePreview, 1000);
+  const debouncedRefinePreview = debounce(refinePreview, 1000);
 
+  // Whole-file: only re-reads/re-transforms the CSV when the actual document set changes,
+  // i.e. which column supplies the text. (selectedMetadataColumns is deliberately excluded:
+  // it only controls which columns the already-fetched preview table displays client-side,
+  // so it never affects pricing/splitting and shouldn't re-trigger a backend call.)
   $effect(() => {
-    // Synchronously read all values to establish dependencies.
-    // selectedMetadataColumns is deliberately excluded: it only controls which
-    // columns the (already-fetched) preview table displays client-side, so it
-    // never affects pricing/splitting and shouldn't re-trigger a backend call.
+    if (selectedTextColumn) {
+      // Invalidate the cached sample immediately (generatePreview will repopulate it once it
+      // resolves), so the sample-only effect below can't fire in the meantime using a sample
+      // that belongs to the previous text column.
+      sampleDocs = [];
+      debouncedGeneratePreview();
+    }
+  });
+
+  // Sample-only: re-previews the cached sample whenever chunking/model config changes.
+  // selectedTextColumn and sampleDocs are read via untrack so this effect doesn't also fire
+  // on text-column changes (handled above) or the moment the whole-file effect populates
+  // sampleDocs (which would just re-run the same config against the same sample).
+  $effect(() => {
     const params = {
       chunkSize,
       chunkOverlap,
       splitIntoSentences,
       combineSentencesIntoChunks,
-      selectedTextColumn,
       modelName,
       modelProvider,
     };
 
-    // Only trigger preview if we have required values
-    if (params.selectedTextColumn) {
-      debouncedGeneratePreview();
+    const canRefine = untrack(() => !!selectedTextColumn && sampleDocs.length > 0);
+    if (canRefine) {
+      debouncedRefinePreview();
     }
   });
 

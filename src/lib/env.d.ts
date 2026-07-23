@@ -37,3 +37,13 @@ interface UploadFormData extends BaseUploadFormData {
   fileContent: string;
   fileName: string;
 }
+
+interface SampleDocument {
+  text: string;
+  metadata: Record<string, any>;
+}
+
+interface RefinePreviewSampleFormData extends BaseUploadFormData {
+  sample: SampleDocument[];
+  documentCount: number;
+}
