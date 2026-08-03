@@ -188,7 +188,7 @@
           />
           <button
             onclick={handleSearch}
-            disabled={loading || !validApiKeysSet}
+            disabled={loading || !validApiKeysSet || !searchQuery.trim()}
             data-testid="search-button"
             class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >
