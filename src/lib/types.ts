@@ -18,7 +18,10 @@ export interface DocumentSetMetadata {
 export interface MeaningfullyAPI {
     listDocumentSets: (page: number, pageSize: number) => Promise<{documents: DocumentSetMetadata[], total: number}> ,
     uploadCsv: (formData: UploadFormData) => Promise<{ success: boolean, documentSetId: number }>,
-    generatePreviewData: (formData: UploadFormData) => Promise<{ success: boolean, nodes: Record<string, any>[], estimatedPrice: number, tokenCount: number, pricePer1M: number }>,
+    generatePreviewData: (formData: UploadFormData) => Promise<{ success: boolean, nodes: Record<string, any>[], estimatedPrice: number, tokenCount: number, pricePer1M: number, documentCount: number, sample: SampleDocument[] }>,
+    // Re-previews a sample already returned by generatePreviewData, under a (possibly
+    // changed) config, without re-reading the source file.
+    refinePreviewSample: (formData: RefinePreviewSampleFormData) => Promise<{ success: boolean, nodes: Record<string, any>[], estimatedPrice: number, tokenCount: number, pricePer1M: number }>,
     searchDocumentSet: (params: {
       documentSetId: number;
       query: string;
