@@ -231,20 +231,22 @@
   const debouncedGeneratePreview = debounce(generatePreview, 1000);
 
   $effect(() => {
-    // Synchronously read all values to establish dependencies
+    // Synchronously read all values to establish dependencies.
+    // selectedMetadataColumns is deliberately excluded: it only controls which
+    // columns the (already-fetched) preview table displays client-side, so it
+    // never affects pricing/splitting and shouldn't re-trigger a backend call.
     const params = {
       chunkSize,
       chunkOverlap,
       splitIntoSentences,
       combineSentencesIntoChunks,
       selectedTextColumn,
-      selectedMetadataColumns,
       modelName,
       modelProvider,
     };
 
     // Only trigger preview if we have required values
-    if (params.selectedTextColumn || params.selectedMetadataColumns.length) {
+    if (params.selectedTextColumn) {
       debouncedGeneratePreview();
     }
   });
