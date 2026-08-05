@@ -35,6 +35,7 @@
     !!settings && (
       (!!settings.openAIKey) || 
       (!!settings.oLlamaBaseURL) ||
+      (!!settings.lmStudioBaseURL) ||
       (!!settings.azureOpenAIKey && !!settings.azureOpenAIEndpoint) ||
       (!!settings.mistralApiKey) ||
       (!!settings.geminiApiKey)
