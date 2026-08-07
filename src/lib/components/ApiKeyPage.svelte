@@ -12,6 +12,7 @@
     let { settings, settingsUpdated, api, basepath }: Props = $props();
     let openAIKey: string = $state(settings.openAIKey);
     let oLlamaBaseURL: string = $state(settings.oLlamaBaseURL);
+    let lmStudioBaseURL: string = $state(settings.lmStudioBaseURL);
     let azureOpenAIKey: string = $state(settings.azureOpenAIKey);
     let azureOpenAIEndpoint: string = $state(settings.azureOpenAIEndpoint);
     let azureOpenAIApiVersion: string = $state(settings.azureOpenAIApiVersion);
@@ -22,6 +23,7 @@
         const newSettings = {
             openAIKey,
             oLlamaBaseURL,
+            lmStudioBaseURL,
             azureOpenAIKey,
             azureOpenAIEndpoint,
             azureOpenAIApiVersion,
@@ -58,6 +60,13 @@
         <p>OLlama lets you run embedding models on your computer. This is free (except for electricity, wear-and-tear, etc.).</p>
         <label for="ollama-url">Base URL:</label>
         <input type="text" id="ollama-url" placeholder="http://localhost:11434" bind:value={oLlamaBaseURL} 
+                    class="flex-1 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 placeholder:italic"/>
+    </div>
+    <div class="settings-section">
+        <h2>LM Studio</h2>
+        <p>LM Studio lets you run embedding models on your computer. This is free (except for electricity, wear-and-tear, etc.).</p>
+        <label for="lmstudio-url">Base URL:</label>
+        <input type="text" id="lmstudio-url" placeholder="http://localhost:1234" bind:value={lmStudioBaseURL}
                     class="flex-1 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 placeholder:italic"/>
     </div>
     <div class="settings-section">

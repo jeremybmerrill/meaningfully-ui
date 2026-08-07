@@ -5,6 +5,7 @@
 interface Settings {
   openAIKey: string;
   oLlamaBaseURL: string;
+  lmStudioBaseURL: string;
   azureOpenAIKey: string;
   azureOpenAIEndpoint: string;
   azureOpenAIApiVersion: string;

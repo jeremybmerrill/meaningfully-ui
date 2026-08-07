@@ -300,6 +300,7 @@
             <option value="openai" disabled={!availableModelOptions.openai}>OpenAI</option>
             <option value="azure" disabled={!availableModelOptions.azure}>Azure OpenAI</option>
             <option value="ollama" disabled={!availableModelOptions.ollama}>Ollama</option>
+            <option value="lmstudio" disabled={!availableModelOptions.lmstudio}>LM Studio</option>
             <option value="mistral" disabled={!availableModelOptions.mistral}>Mistral AI</option>
             <option value="gemini" disabled={!availableModelOptions.gemini}>Google Gemini</option>
           </select>
