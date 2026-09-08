@@ -4,6 +4,10 @@
     textColumn: string;
     metadataColumns?: string[];
     showSimilarity?: boolean;
+    // Label and formatting for the score column -- semantic search's cosine similarity is a
+    // 0-1 fraction best shown as a percentage, but BM25's unbounded relevance score isn't.
+    scoreLabel?: string;
+    scoreAsPercentage?: boolean;
     showShowOriginal?: boolean;
     originalDocumentClick?: (sourceNodeId: string) => void;
   }
@@ -13,12 +17,15 @@
     textColumn,
     metadataColumns = [],
     showSimilarity = false,
+    scoreLabel = 'similarity',
+    scoreAsPercentage = true,
     showShowOriginal = false,
     originalDocumentClick = () => {},
   }: Props = $props();
 
-  // Combine all columns in display order: metadata, similarity
-  // text column is always called text internally, but we rename just the header.
+  // Combine all columns in display order: metadata, similarity/score.
+  // The 'similarity' key is the row's internal data key regardless of search mode; scoreLabel
+  // only controls its displayed header text (see below).
   let columns = $derived([textColumn, ...metadataColumns, ...(showSimilarity ? ['similarity'] : [])]);
 
 
@@ -84,7 +91,7 @@
     <thead>
       <tr class="bg-gray-100">
         {#each columns as column}
-          <th class="px-4 py-2 text-left border-b" class:min-w-[24rem]={column === textColumn}>{column}</th>
+          <th class="px-4 py-2 text-left border-b" class:min-w-[24rem]={column === textColumn}>{column === 'similarity' ? scoreLabel : column}</th>
         {/each}
         {#if showShowOriginal}
           <th class="px-4 py-2 text-left border-b"></th><!-- blank column for show all button-->
@@ -97,7 +104,7 @@
           {#each columns as column}
             <td class="px-4 py-2" class:min-w-[24rem]={column === textColumn}>
               {#if column === 'similarity' && row[column] !== undefined}
-                {(row[column] * 100).toFixed(1)}%
+                {scoreAsPercentage ? (row[column] * 100).toFixed(1) + '%' : row[column].toFixed(3)}
               {:else if column === textColumn || sanitizePropertyNameForWeaviate(column) === textColumn}
                 {@html sanitizeAndFormatText(row[column]  || row[sanitizePropertyNameForWeaviate(column)]  || '')}
               {:else if is_link(row[column]  || row[sanitizePropertyNameForWeaviate(column)] )}

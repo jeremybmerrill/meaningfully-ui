@@ -1,6 +1,6 @@
 <script lang="ts">
   import { navigate, Link } from 'svelte-routing';
-  import type { DocumentSet, MeaningfullyAPI } from '../types.js';
+  import type { DocumentSet, MeaningfullyAPI, SearchMode } from '../types.js';
   import Results from './Results.svelte';
 
   interface Props {
@@ -26,6 +26,10 @@
   const blankSearchQuery = '';
   let searchQuery = $state(blankSearchQuery);
   let metadataFilters: Array<{ key: string, operator: "==" | "in" | ">" | "<" | "!=" | ">=" | "<=" | "nin" | "any" | "all" | "text_match" | "contains" | "is_empty", value: any }> = $state([]);
+
+  // Keyword (BM25) search is a secondary option: it ranks by exact keyword overlap instead
+  // of meaning, and (unlike semantic search) doesn't support metadata filters.
+  let searchMode: SearchMode = $state('semantic');
 
   let results: Array<Record<string, any>> = $state([]);
   let error: string | null = $state(null);
@@ -74,11 +78,13 @@
         query: searchQuery,
         n_results: pageSize,
         offset: 0,
-        filters: metadataFilters.map(filter => ({
+        // Filters aren't supported in keyword (BM25) mode, so they're only sent for semantic search.
+        filters: searchMode === 'bm25' ? [] : metadataFilters.map(filter => ({
           key: filter.key,
           operator: filter.operator,
           value: filter.value
-        }))
+        })),
+        searchMode
       });
       results = mapSearchResults(searchResponse.results);
       hasMore = searchResponse.hasMore;
@@ -103,11 +109,12 @@
         query: searchQuery,
         n_results: pageSize,
         offset: results.length,
-        filters: metadataFilters.map(filter => ({
+        filters: searchMode === 'bm25' ? [] : metadataFilters.map(filter => ({
           key: filter.key,
           operator: filter.operator,
           value: filter.value
-        }))
+        })),
+        searchMode
       });
 
       const nextRows = mapSearchResults(searchResponse.results);
@@ -175,7 +182,7 @@
       <!-- Search Input -->
       <div class="space-y-2">
         <label for="search" class="block text-sm font-medium text-gray-300">
-          Semantic Search
+          {searchMode === 'bm25' ? 'Keyword Search' : 'Semantic Search'}
         </label>
         <div class="flex space-x-4">
           <input
@@ -195,14 +202,34 @@
             {loading ? 'Searching...' : 'Search'}
           </button>
         </div>
-        <p class="text-xs text-gray-500">
-          Need a hint? Imagine the perfect document that you hope might exist in your spreadsheet. Type it here. Meaningfully will find the real documents that mean 
-          about the same thing -- even if they have no keywords in common.
-        </p>
+        {#if searchMode === 'bm25'}
+          <p class="text-xs text-gray-500">
+            Keyword search ranks documents by how many of your exact words they contain, like a traditional search engine.
+          </p>
+        {:else}
+          <p class="text-xs text-gray-500">
+            Need a hint? Imagine the perfect document that you hope might exist in your spreadsheet. Type it here. Meaningfully will find the real documents that mean
+            about the same thing -- even if they have no keywords in common.
+          </p>
+        {/if}
+        <label class="flex items-center gap-1.5 text-xs text-gray-500">
+          <input
+            type="checkbox"
+            checked={searchMode === 'bm25'}
+            onchange={(e) => (searchMode = e.currentTarget.checked ? 'bm25' : 'semantic')}
+            data-testid="bm25-toggle"
+            class="h-3 w-3"
+          />
+          Search by exact keywords (BM25) instead of meaning
+        </label>
       </div>
 
       <!-- Metadata Filters -->
-      {#if metadataColumns.length > 0}  
+      {#if searchMode === 'bm25'}
+        {#if metadataColumns.length > 0}
+          <p class="text-xs text-gray-500">Filters aren't available with keyword search.</p>
+        {/if}
+      {:else if metadataColumns.length > 0}
       <div class="space-y-2">
         <p class="block text-sm font-medium text-gray-300">
           Use filters to search a subset of rows in your spreadsheet.
@@ -267,6 +294,8 @@
           showMore={handleLoadMore}
           {textColumn}
           {metadataColumns}
+          scoreLabel={searchMode === 'bm25' ? 'keyword score' : 'similarity'}
+          scoreAsPercentage={searchMode !== 'bm25'}
           originalDocumentClick={handleOriginalDocumentClick}
           />
       </div>

@@ -10,6 +10,10 @@
     hasMore?: boolean;
     loadingMore?: boolean;
     showMore?: () => void;
+    // Label and formatting for the score column -- semantic search's cosine similarity is a
+    // 0-1 fraction best shown as a percentage, but BM25's unbounded relevance score isn't.
+    scoreLabel?: string;
+    scoreAsPercentage?: boolean;
     originalDocumentClick?: (sourceNodeId: string) => void;
   }
 
@@ -21,6 +25,8 @@
     hasMore = false,
     loadingMore = false,
     showMore = () => {},
+    scoreLabel = 'similarity',
+    scoreAsPercentage = true,
     originalDocumentClick = () => {},
   }: Props = $props();
 
@@ -73,9 +79,9 @@
         csvRow[column] = row[column] || row[sanitizePropertyName(column)] ||  '';
       });
       
-      // Add similarity column, formatted as percentage
+      // Add the score column, formatted to match how it's displayed on screen.
       if (row.similarity !== undefined) {
-        csvRow.similarity = (row.similarity * 100).toFixed(1) + '%';
+        csvRow[scoreLabel] = scoreAsPercentage ? (row.similarity * 100).toFixed(1) + '%' : row.similarity.toFixed(3);
       }
       
       return csvRow;
@@ -133,6 +139,8 @@
         {textColumn}
         {metadataColumns}
         showSimilarity={true}
+        {scoreLabel}
+        {scoreAsPercentage}
         showShowOriginal={true}
         originalDocumentClick={originalDocumentClick}
       />
