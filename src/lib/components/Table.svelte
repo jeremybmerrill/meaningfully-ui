@@ -97,7 +97,7 @@
           {#each columns as column}
             <td class="px-4 py-2" class:min-w-[24rem]={column === textColumn}>
               {#if column === 'similarity' && row[column] !== undefined}
-                {(row[column] * 100).toFixed(1)}%
+                <span class="mf-num">{(row[column] * 100).toFixed(1)}%</span>
               {:else if column === textColumn || sanitizePropertyNameForWeaviate(column) === textColumn}
                 {@html sanitizeAndFormatText(row[column]  || row[sanitizePropertyNameForWeaviate(column)]  || '')}
               {:else if is_link(row[column]  || row[sanitizePropertyNameForWeaviate(column)] )}

@@ -127,12 +127,14 @@
     }
     button {
         padding: 10px 20px;
-        background-color: #007BFF;
-        color: white;
+        background-color: var(--color-blue-500);
+        color: var(--color-white);
         border: none;
+        border-radius: var(--radius-md);
+        font-family: var(--font-body);
         cursor: pointer;
     }
     button:hover {
-        background-color: #0056b3;
+        background-color: var(--color-blue-600);
     }
 </style>
