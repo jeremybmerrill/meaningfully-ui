@@ -15,7 +15,7 @@ export interface DocumentSetMetadata {
   totalDocuments: number;
 }
 
-export type SearchMode = "semantic" | "bm25";
+export type SearchMode = "semantic" | "hybrid";
 
 export interface MeaningfullyAPI {
     listDocumentSets: (page: number, pageSize: number) => Promise<{documents: DocumentSetMetadata[], total: number}> ,
@@ -31,8 +31,8 @@ export interface MeaningfullyAPI {
         operator: "==" | "in" | ">" | "<" | "!=" | ">=" | "<=" | "nin" | "any" | "all" | "text_match" | "contains" | "is_empty",
         value: any
       }[];
-      // "semantic" (the default) ranks by embedding similarity; "bm25" ranks by keyword
-      // relevance instead and doesn't support metadata filters.
+      // "semantic" (the default) ranks by embedding similarity; "hybrid" additionally folds in
+      // BM25 keyword relevance, combining the two via reciprocal rank fusion.
       searchMode?: SearchMode;
     }) => Promise<{ results: SearchResult[]; hasMore: boolean }>;
     getDocument: (params: {documentSetId: number, documentId: string}) => Promise<{ text: string, metadata: Record<string, any> }>;

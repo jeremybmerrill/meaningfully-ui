@@ -27,8 +27,8 @@
   let searchQuery = $state(blankSearchQuery);
   let metadataFilters: Array<{ key: string, operator: "==" | "in" | ">" | "<" | "!=" | ">=" | "<=" | "nin" | "any" | "all" | "text_match" | "contains" | "is_empty", value: any }> = $state([]);
 
-  // Keyword (BM25) search is a secondary option: it ranks by exact keyword overlap instead
-  // of meaning, and (unlike semantic search) doesn't support metadata filters.
+  // Hybrid search is a secondary option: it boosts semantic search with exact-keyword (BM25)
+  // matching, fusing the two rankings together. Metadata filters still apply in this mode.
   let searchMode: SearchMode = $state('semantic');
 
   let results: Array<Record<string, any>> = $state([]);
@@ -78,8 +78,7 @@
         query: searchQuery,
         n_results: pageSize,
         offset: 0,
-        // Filters aren't supported in keyword (BM25) mode, so they're only sent for semantic search.
-        filters: searchMode === 'bm25' ? [] : metadataFilters.map(filter => ({
+        filters: metadataFilters.map(filter => ({
           key: filter.key,
           operator: filter.operator,
           value: filter.value
@@ -109,7 +108,7 @@
         query: searchQuery,
         n_results: pageSize,
         offset: results.length,
-        filters: searchMode === 'bm25' ? [] : metadataFilters.map(filter => ({
+        filters: metadataFilters.map(filter => ({
           key: filter.key,
           operator: filter.operator,
           value: filter.value
@@ -182,7 +181,7 @@
       <!-- Search Input -->
       <div class="space-y-2">
         <label for="search" class="block text-sm font-medium text-gray-300">
-          {searchMode === 'bm25' ? 'Keyword Search' : 'Semantic Search'}
+          {searchMode === 'hybrid' ? 'Hybrid Search' : 'Semantic Search'}
         </label>
         <div class="flex space-x-4">
           <input
@@ -202,9 +201,9 @@
             {loading ? 'Searching...' : 'Search'}
           </button>
         </div>
-        {#if searchMode === 'bm25'}
+        {#if searchMode === 'hybrid'}
           <p class="text-xs text-gray-500">
-            Keyword search ranks documents by how many of your exact words they contain, like a traditional search engine.
+            Hybrid search boosts semantic search with exact-keyword matching, so documents that share your words rank higher too.
           </p>
         {:else}
           <p class="text-xs text-gray-500">
@@ -215,21 +214,17 @@
         <label class="flex items-center gap-1.5 text-xs text-gray-500">
           <input
             type="checkbox"
-            checked={searchMode === 'bm25'}
-            onchange={(e) => (searchMode = e.currentTarget.checked ? 'bm25' : 'semantic')}
-            data-testid="bm25-toggle"
+            checked={searchMode === 'hybrid'}
+            onchange={(e) => (searchMode = e.currentTarget.checked ? 'hybrid' : 'semantic')}
+            data-testid="hybrid-toggle"
             class="h-3 w-3"
           />
-          Search by exact keywords (BM25) instead of meaning
+          Boost with exact keyword matching (hybrid search)
         </label>
       </div>
 
       <!-- Metadata Filters -->
-      {#if searchMode === 'bm25'}
-        {#if metadataColumns.length > 0}
-          <p class="text-xs text-gray-500">Filters aren't available with keyword search.</p>
-        {/if}
-      {:else if metadataColumns.length > 0}
+      {#if metadataColumns.length > 0}
       <div class="space-y-2">
         <p class="block text-sm font-medium text-gray-300">
           Use filters to search a subset of rows in your spreadsheet.
@@ -294,8 +289,8 @@
           showMore={handleLoadMore}
           {textColumn}
           {metadataColumns}
-          scoreLabel={searchMode === 'bm25' ? 'keyword score' : 'similarity'}
-          scoreAsPercentage={searchMode !== 'bm25'}
+          scoreLabel={searchMode === 'hybrid' ? 'hybrid score' : 'similarity'}
+          scoreAsPercentage={searchMode !== 'hybrid'}
           originalDocumentClick={handleOriginalDocumentClick}
           />
       </div>

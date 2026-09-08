@@ -5,7 +5,7 @@
     metadataColumns?: string[];
     showSimilarity?: boolean;
     // Label and formatting for the score column -- semantic search's cosine similarity is a
-    // 0-1 fraction best shown as a percentage, but BM25's unbounded relevance score isn't.
+    // 0-1 fraction best shown as a percentage, but hybrid search's fused rank score isn't.
     scoreLabel?: string;
     scoreAsPercentage?: boolean;
     showShowOriginal?: boolean;
