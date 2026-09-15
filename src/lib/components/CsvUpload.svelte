@@ -10,12 +10,14 @@
 
   let error = $state('');
   let selectedFile: File | null = $state(null);
+  let isProcessing = $state(false);
   let isDragOver = $state(false);
   let fileInput: HTMLInputElement | undefined = $state();
 
   const selectFile = (file: File) => {
     error = '';
     selectedFile = file;
+    isProcessing = true;
     handleUpload(file);
   };
 
@@ -60,14 +62,16 @@
     Papa.parse(file, {
       complete: async (results) => {
         if (results.errors.length > 0) {
-          error = 'Invalid CSV file';
+          isProcessing = false;
+          error = `That file (${file.name}) is invalid. Choose another CSV file`;
           console.error('CSV parsing errors:', results.errors);
           return;
         }
 
         const availableColumns = results.meta.fields || [];
         if (availableColumns.length === 0) {
-          error = 'CSV file has no columns';
+          isProcessing = false;
+          error = `That file (${file.name}) is invalid. Choose another CSV file`;
           return;
         }
 
@@ -97,6 +101,7 @@
             ...fileData,
             fileContent
           });
+          isProcessing = false;
           // Navigate to configuration page
           navigate(basepath.replace(/\/+$/g, "") + "/configure-upload");
 
@@ -140,7 +145,9 @@
   >
     {#if selectedFile}
       <span class="font-semibold text-violet-700">{selectedFile.name}</span>
-      <span class="block text-xs text-slate-400 mt-1">Click or drag a different CSV file to replace it</span>
+      {#if isProcessing}
+        <span class="block text-xs text-slate-400 mt-1">processing...</span>
+      {/if}
     {:else}
       Drag and drop a CSV file here, or click to choose a file
     {/if}
