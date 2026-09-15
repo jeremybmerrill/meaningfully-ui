@@ -16,6 +16,7 @@
   const selectFile = (file: File) => {
     error = '';
     selectedFile = file;
+    handleUpload(file);
   };
 
   const handleFileInputChange = (event: Event) => {
@@ -52,9 +53,8 @@
     }
   };
 
-  const handleUpload = async () => {
-    if (!selectedFile) return;
-    const file = selectedFile;
+  const handleUpload = async (file: File) => {
+    if (!validApiKeysSet) return;
 
     // Parse CSV to get column names and validate it's a valid CSV
     Papa.parse(file, {
@@ -145,21 +145,6 @@
       Drag and drop a CSV file here, or click to choose a file
     {/if}
   </div>
-
-  {#if selectedFile}
-    <button
-      type="button"
-      data-testid="upload-file-button"
-      onclick={handleUpload}
-      disabled={!validApiKeysSet}
-      class="rounded-full bg-violet-600 px-4 py-2 text-sm font-semibold text-white
-        hover:bg-violet-700
-        disabled:opacity-50 disabled:cursor-not-allowed
-      "
-    >
-      Upload
-    </button>
-  {/if}
 
   {#if !validApiKeysSet}
     <p class="text-sm text-gray-600">
