@@ -1,0 +1,344 @@
+/*
+ * Meaningfully visual theme.
+ *
+ * Default look is "Card Catalog": warm paper, a quiet serif body, and a
+ * showier display face on headings. Typing "top8" anywhere (outside a form
+ * field) flips the whole app into "Personal Page", a mid-2000s personal-
+ * homepage look — see App.svelte for the listener that sets
+ * documentElement[data-theme="personal-page"].
+ *
+ * This works by overriding Tailwind v4's theme CSS variables (--color-*,
+ * --radius-*, --shadow*) at runtime, so existing utility classes
+ * (bg-white, text-blue-600, rounded-lg, shadow, ...) repaint automatically
+ * without touching every component.
+ */
+
+/* ---------- self-hosted fonts (no network access, works offline) ---------- */
+@font-face {
+  font-family: 'Libre Caslon Text';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/libre-caslon-text-normal-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Libre Caslon Text';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./fonts/libre-caslon-text-normal-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Libre Caslon Text';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/libre-caslon-text-italic-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-weight: 300 900;
+  font-display: swap;
+  src: url('./fonts/fraunces-normal-var.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Fraunces';
+  font-style: italic;
+  font-weight: 300 900;
+  font-display: swap;
+  src: url('./fonts/fraunces-italic-var.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Special Elite';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/special-elite-normal-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Baloo 2';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./fonts/baloo2-700.woff2') format('woff2');
+}
+
+/* =====================================================================
+   CARD CATALOG (default)
+   ===================================================================== */
+:root {
+  --font-body: 'Libre Caslon Text', Georgia, serif;
+  --font-display: 'Fraunces', 'Libre Caslon Text', Georgia, serif;
+  --font-mono-accent: 'Special Elite', ui-monospace, monospace;
+
+  /* page chrome (consumed directly by base.css's body rule) */
+  --color-background: #e7d9b4; /* kraft/manila page ground */
+  --color-text: #332a1e; /* ink */
+
+  --color-rule: #cdbb8e; /* hairline borders, under the "white" cards */
+  --color-accent: #4a4270; /* mimeograph ink-purple */
+  --color-accent-deep: #332e4f;
+
+  /* Tailwind v4 theme tokens, overridden so every existing utility class
+     (bg-white, text-blue-600, rounded-lg, shadow, ...) repaints. */
+  --color-white: #f6efd9; /* "card" surfaces */
+  --color-black: #332a1e; /* ink, used by text-black */
+
+  --color-gray-50: #efe4c4;
+  --color-gray-100: #e9dcb8;
+  --color-gray-200: #d8c69a;
+  --color-gray-300: #cdbb8e;
+  --color-gray-400: #8a7c5e;
+  --color-gray-500: #6b5f47;
+  --color-gray-600: #5b503a;
+  --color-gray-700: #332a1e;
+  --color-gray-800: #241d14;
+  --color-gray-900: #1a140d;
+  --color-gray-950: #120e09;
+
+  --color-blue-500: var(--color-accent);
+  --color-blue-600: var(--color-accent-deep);
+  --color-blue-800: #241f38;
+
+  --color-violet-50: #ece4d3;
+  --color-violet-100: #ded1c8;
+  --color-violet-500: var(--color-accent);
+  --color-violet-600: var(--color-accent);
+  --color-violet-700: var(--color-accent-deep);
+
+  --color-purple-600: #6b3f5e;
+
+  --color-red-100: #f0dcd3;
+  --color-red-600: #8a3a2e;
+  --color-red-700: #7a2e26;
+
+  --color-green-500: #2f5233;
+  --color-green-600: #24401f;
+
+  --radius-md: 0.1875rem;
+  --radius-lg: 0.25rem;
+  --shadow: 0 1px 0 rgba(51, 42, 30, 0.18);
+  --shadow-lg: 0 10px 24px rgba(51, 42, 30, 0.28);
+
+  /* alert used by ApiKeyStatus.svelte */
+  --color-alert-bg: #f3e6c4;
+  --color-alert-text: #5b4a1f;
+  --color-alert-border: #cdb877;
+}
+
+body {
+  font-family: var(--font-body);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+a {
+  text-underline-offset: 2px;
+}
+
+/* every "card" in the app is a plain bg-white + rounded-lg + shadow div;
+   this hairline turns the (now-cream) card into a proper catalog card. */
+.rounded-lg.shadow,
+.rounded-lg.shadow-lg {
+  border: 1px solid var(--color-rule);
+}
+
+.navbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 18px;
+  margin-top: 28px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-text);
+  font-size: 12px;
+}
+.navbar .nav-link {
+  text-decoration: none;
+  color: var(--color-gray-500);
+}
+.navbar .nav-link:hover {
+  color: var(--color-accent);
+}
+.navbar .creator,
+.navbar span.nav-link {
+  font-family: var(--font-mono-accent);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+}
+
+.mf-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-bottom: 18px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid var(--color-text);
+}
+.mf-header .mf-wordmark-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+}
+.mf-header h1.mf-wordmark {
+  margin: 0;
+  font-size: 30px;
+}
+.mf-header h2.mf-tagline {
+  margin: 4px 0 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--color-gray-500);
+}
+.mf-sparkle {
+  display: none;
+}
+
+/* small typewriter accent for the similarity percentage in results */
+.mf-num {
+  font-family: var(--font-mono-accent);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-accent);
+}
+
+/* =====================================================================
+   PERSONAL PAGE (secret alternate theme — type "top8" to reveal)
+   ===================================================================== */
+:root[data-theme='personal-page'] {
+  --font-body: Verdana, Geneva, 'Trebuchet MS', sans-serif;
+  --font-display: 'Baloo 2', Verdana, sans-serif;
+  --font-mono-accent: Verdana, sans-serif;
+
+  --color-background: linear-gradient(165deg, #e7edfb 0%, #d7e2fa 55%, #eef2fc 100%);
+  --color-text: #222a4d;
+
+  --color-rule: #c3d1f0;
+  --color-accent: #3d5cdb;
+  --color-accent-deep: #2a3fa8;
+
+  --color-white: #fdfdff;
+  --color-black: #222a4d;
+
+  --color-gray-50: #f4f7fe;
+  --color-gray-100: #eef2fd;
+  --color-gray-200: #dbe4fa;
+  --color-gray-300: #c3d1f0;
+  --color-gray-400: #8892b8;
+  --color-gray-500: #5b628a;
+  --color-gray-600: #4b527a;
+  --color-gray-700: #222a4d;
+  --color-gray-800: #171d38;
+  --color-gray-900: #10142a;
+  --color-gray-950: #0a0d1c;
+
+  --color-blue-500: var(--color-accent);
+  --color-blue-600: var(--color-accent-deep);
+  --color-blue-800: #1b2c80;
+
+  --color-violet-50: #fdece2;
+  --color-violet-100: #ffdcc7;
+  --color-violet-500: #ff8a55;
+  --color-violet-600: #ff8a55;
+  --color-violet-700: #e0632a;
+
+  --color-purple-600: #4a3f99;
+
+  --color-red-100: #fbe0e0;
+  --color-red-600: #d1483c;
+  --color-red-700: #b83a2f;
+
+  --color-green-500: #4caf6b;
+  --color-green-600: #3d8f57;
+
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --shadow: 0 3px 10px rgba(34, 42, 77, 0.14);
+  --shadow-lg: 0 14px 30px rgba(34, 42, 77, 0.22);
+
+  --color-alert-bg: #fff3cd;
+  --color-alert-text: #7a5b00;
+  --color-alert-border: #ffe08a;
+}
+
+:root[data-theme='personal-page'] body {
+  background-attachment: fixed;
+}
+
+:root[data-theme='personal-page'] h1,
+:root[data-theme='personal-page'] h2,
+:root[data-theme='personal-page'] h3,
+:root[data-theme='personal-page'] h4 {
+  letter-spacing: 0;
+}
+
+:root[data-theme='personal-page'] .rounded-lg.shadow,
+:root[data-theme='personal-page'] .rounded-lg.shadow-lg {
+  border: 1px solid var(--color-rule);
+  box-shadow: 0 3px 14px rgba(34, 42, 77, 0.1);
+}
+
+:root[data-theme='personal-page'] .navbar {
+  border-top: none;
+  gap: 8px;
+}
+:root[data-theme='personal-page'] .navbar .nav-link {
+  background: var(--color-white);
+  border: 1px solid var(--color-rule);
+  border-radius: 999px;
+  padding: 5px 12px;
+  box-shadow: 0 1px 3px rgba(34, 42, 77, 0.12);
+}
+:root[data-theme='personal-page'] .navbar .nav-link:hover {
+  border-color: var(--color-accent);
+}
+:root[data-theme='personal-page'] .navbar .creator,
+:root[data-theme='personal-page'] .navbar span.nav-link {
+  font-family: var(--font-body);
+  font-weight: bold;
+}
+
+:root[data-theme='personal-page'] .mf-header {
+  border-bottom: none;
+  background: var(--color-white);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-lg);
+  padding: 16px 22px;
+  box-shadow: var(--shadow);
+}
+:root[data-theme='personal-page'] .mf-header h2.mf-tagline {
+  font-family: var(--font-body);
+  font-style: normal;
+  font-size: 12px;
+}
+:root[data-theme='personal-page'] .mf-sparkle {
+  display: inline-block;
+  color: #ff8a55;
+  font-size: 15px;
+  animation: mf-twinkle 2.4s ease-in-out infinite;
+}
+:root[data-theme='personal-page'] .mf-sparkle:nth-of-type(2) {
+  animation-delay: 0.9s;
+}
+@keyframes mf-twinkle {
+  0%, 100% { opacity: .5; transform: scale(.85); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root[data-theme='personal-page'] .mf-sparkle { animation: none; opacity: 1; }
+}
+
+:root[data-theme='personal-page'] .mf-num {
+  font-family: var(--font-body);
+  font-weight: bold;
+}
