@@ -174,7 +174,7 @@
     <div class="space-y-4 max-w-3xl">
       <!-- Search Input -->
       <div class="space-y-2">
-        <label for="search" class="block text-sm font-medium text-gray-300">
+        <label for="search" class="block text-sm font-medium text-gray-700">
           Semantic Search
         </label>
         <div class="flex space-x-4">
@@ -204,7 +204,7 @@
       <!-- Metadata Filters -->
       {#if metadataColumns.length > 0}  
       <div class="space-y-2">
-        <p class="block text-sm font-medium text-gray-300">
+        <p class="block text-sm font-medium text-gray-700">
           Use filters to search a subset of rows in your spreadsheet.
         </p>
         <div class="space-y-4">
