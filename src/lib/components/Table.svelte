@@ -91,7 +91,7 @@
     <thead>
       <tr class="bg-gray-100">
         {#each columns as column}
-          <th class="px-4 py-2 text-left border-b" class:min-w-[24rem]={column === textColumn}>{column === 'similarity' ? scoreLabel : column}</th>
+          <th class="px-4 py-2 text-left border-b" class:w-[24rem]={column === textColumn}>{column}</th>
         {/each}
         {#if showShowOriginal}
           <th class="px-4 py-2 text-left border-b"></th><!-- blank column for show all button-->
@@ -102,9 +102,9 @@
       {#each data as row}
         <tr class="border-b hover:bg-gray-50">
           {#each columns as column}
-            <td class="px-4 py-2" class:min-w-[24rem]={column === textColumn}>
+            <td class="px-4 py-2" class:w-[24rem]={column === textColumn}>
               {#if column === 'similarity' && row[column] !== undefined}
-                {scoreAsPercentage ? (row[column] * 100).toFixed(1) + '%' : row[column].toFixed(3)}
+                <span class="mf-num">{scoreAsPercentage ? (row[column] * 100).toFixed(1) + '%' : row[column].toFixed(3)}</span>
               {:else if column === textColumn || sanitizePropertyNameForWeaviate(column) === textColumn}
                 {@html sanitizeAndFormatText(row[column]  || row[sanitizePropertyNameForWeaviate(column)]  || '')}
               {:else if is_link(row[column]  || row[sanitizePropertyNameForWeaviate(column)] )}

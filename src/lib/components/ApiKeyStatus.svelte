@@ -9,7 +9,7 @@
 </script>
 
 {#if !validApiKeysSet }
-    <div class="alert alert-warning" data-testid="api-key-status">
+    <div class="alert" data-testid="api-key-status">
         <p>No OpenAI API key is set. Please <Link to="settings" class="text-blue text-decoration-line"><span class="text-blue text-decoration-line">add one</span></Link> (or details for another provider) in order to use Meaningfully.</p>
     </div>
 {/if}
@@ -18,19 +18,15 @@
 <style>
 .alert {
     padding: 10px;
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-    border-radius: 5px;
+    background-color: var(--color-alert-bg);
+    color: var(--color-alert-text);
+    border: 1px solid var(--color-alert-border);
+    border-radius: var(--radius-md);
     margin-top: 20px;
+    font-family: var(--font-body);
 }
-.alert-warning {
-    background-color: #fff3cd;
-    color: #856404;
-    border-color: #ffeeba;
-}
-.alert :global(a) , .alert-warning :global(a) { /* hack */
-    color: #0d6efd;
+.alert :global(a) { /* hack */
+    color: var(--color-blue-600);
     text-decoration: underline;
     cursor: pointer;
     font-weight: bold;

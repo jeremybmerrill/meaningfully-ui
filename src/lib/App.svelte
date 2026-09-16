@@ -30,7 +30,34 @@
           console.error('Error fetching settings:', error);
       }
   };
-  
+
+  // Secret: typing "top8" (outside a form field) flips the app into the
+  // "Personal Page" look. Typing it again flips back to the Card Catalog default.
+  const secretPassword = 'top8';
+  let secretBuffer = '';
+
+  const isTypingInAField = (target: EventTarget | null) => {
+    if (!(target instanceof HTMLElement)) return false;
+    return target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
+  };
+
+  const applyPersonalPageTheme = (enabled: boolean) => {
+    if (enabled) {
+      document.documentElement.setAttribute('data-theme', 'personal-page');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+  };
+
+  const handleSecretKeydown = (event: KeyboardEvent) => {
+    if (isTypingInAField(event.target) || event.key.length !== 1) return;
+    secretBuffer = (secretBuffer + event.key.toLowerCase()).slice(-secretPassword.length);
+    if (secretBuffer === secretPassword) {
+      secretBuffer = '';
+      applyPersonalPageTheme(document.documentElement.getAttribute('data-theme') !== 'personal-page');
+    }
+  };
+
   let validApiKeysSet: boolean = $derived(
     !!settings && (
       (!!settings.openAIKey) || 
@@ -42,22 +69,31 @@
     )
   );
 
-  onMount(getSettings);
+  onMount(() => {
+    getSettings();
+    window.addEventListener('keydown', handleSecretKeydown);
+    return () => window.removeEventListener('keydown', handleSecretKeydown);
+  });
 
 </script>
 
 <!-- <img alt="logo" class="logo" src={electronLogo} /> -->
 
 <Router url={url} basepath={basepath_app}>
-  <Link to="/">
-    <h1 class="text-2xl font-bold">
-      Meaningfully
-    </h1>
-  </Link>
-
-  <h2 class="text-xl font-semibold">
-    Semantic search for your spreadsheets
-  </h2>
+  <header class="mf-header">
+    <div>
+      <Link to="/">
+        <div class="mf-wordmark-row">
+          <span class="mf-sparkle" aria-hidden="true">✦</span>
+          <h1 class="mf-wordmark">Meaningfully</h1>
+          <span class="mf-sparkle" aria-hidden="true">✦</span>
+        </div>
+      </Link>
+      <h2 class="mf-tagline">
+        Semantic search for your spreadsheets
+      </h2>
+    </div>
+  </header>
 
   {#if settings}
     <ApiKeyStatus settings={settings} validApiKeysSet={validApiKeysSet} />
