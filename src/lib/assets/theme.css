@@ -186,6 +186,7 @@ a {
 .mf-header .mf-wordmark-row {
   display: flex;
   align-items: baseline;
+  justify-content: center;
   gap: 8px;
 }
 .mf-header h1.mf-wordmark {
