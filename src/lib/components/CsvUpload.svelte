@@ -13,12 +13,15 @@
   let isProcessing = $state(false);
   let isDragOver = $state(false);
   let fileInput: HTMLInputElement | undefined = $state();
+  // Incremented on each selection so stale Papa.parse/FileReader callbacks from a superseded file can be ignored.
+  let selectionToken = 0;
 
   const selectFile = (file: File) => {
+    if (isProcessing) return;
     error = '';
     selectedFile = file;
     isProcessing = true;
-    handleUpload(file);
+    handleUpload(file, ++selectionToken);
   };
 
   const handleFileInputChange = (event: Event) => {
@@ -44,7 +47,7 @@
   };
 
   const openFilePicker = () => {
-    if (!validApiKeysSet) return;
+    if (!validApiKeysSet || isProcessing) return;
     fileInput?.click();
   };
 
@@ -55,12 +58,14 @@
     }
   };
 
-  const handleUpload = async (file: File) => {
+  const handleUpload = async (file: File, token: number) => {
     if (!validApiKeysSet) return;
 
     // Parse CSV to get column names and validate it's a valid CSV
     Papa.parse(file, {
       complete: async (results) => {
+        if (token !== selectionToken) return;
+
         if (results.errors.length > 0) {
           isProcessing = false;
           error = `That file (${file.name}) is invalid. Choose another CSV file`;
@@ -86,6 +91,8 @@
         // Store the actual file as a base64 string
         const reader = new FileReader();
         reader.onload = () => {
+          if (token !== selectionToken) return;
+
           let fileContent = reader.result as string;
 
           // Check if it's already a file URL encoded -- which is base64 encoded and starts with data:text/csv;base64, prefix
@@ -125,14 +132,14 @@
     type="file"
     accept=".csv"
     onchange={handleFileInputChange}
-    disabled={!validApiKeysSet}
+    disabled={!validApiKeysSet || isProcessing}
     class="hidden"
   />
 
   <div
     role="button"
-    tabindex={validApiKeysSet ? 0 : -1}
-    aria-disabled={!validApiKeysSet}
+    tabindex={validApiKeysSet && !isProcessing ? 0 : -1}
+    aria-disabled={!validApiKeysSet || isProcessing}
     onclick={openFilePicker}
     onkeydown={handleDropzoneKeydown}
     ondrop={handleDrop}
@@ -140,7 +147,7 @@
     ondragleave={handleDragLeave}
     class="block w-full rounded-lg border-2 border-dashed p-6 text-center text-sm text-slate-500 transition-colors
       {isDragOver ? 'border-violet-500 bg-violet-50' : 'border-slate-300'}
-      {validApiKeysSet ? 'cursor-pointer hover:border-violet-400 hover:bg-violet-50' : 'opacity-50 cursor-not-allowed'}
+      {validApiKeysSet && !isProcessing ? 'cursor-pointer hover:border-violet-400 hover:bg-violet-50' : 'opacity-50 cursor-not-allowed'}
     "
   >
     {#if selectedFile}
