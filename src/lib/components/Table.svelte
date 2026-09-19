@@ -4,10 +4,8 @@
     textColumn: string;
     metadataColumns?: string[];
     showSimilarity?: boolean;
-    // Label and formatting for the score column -- semantic search's cosine similarity is a
-    // 0-1 fraction best shown as a percentage, but hybrid search's fused rank score isn't.
+    // Header text for the score column ('similarity' by default).
     scoreLabel?: string;
-    scoreAsPercentage?: boolean;
     showShowOriginal?: boolean;
     originalDocumentClick?: (sourceNodeId: string) => void;
   }
@@ -18,7 +16,6 @@
     metadataColumns = [],
     showSimilarity = false,
     scoreLabel = 'similarity',
-    scoreAsPercentage = true,
     showShowOriginal = false,
     originalDocumentClick = () => {},
   }: Props = $props();
@@ -91,7 +88,7 @@
     <thead>
       <tr class="bg-gray-100">
         {#each columns as column}
-          <th class="px-4 py-2 text-left border-b" class:w-[24rem]={column === textColumn}>{column}</th>
+          <th class="px-4 py-2 text-left border-b" class:w-[24rem]={column === textColumn}>{column === 'similarity' ? scoreLabel : column}</th>
         {/each}
         {#if showShowOriginal}
           <th class="px-4 py-2 text-left border-b"></th><!-- blank column for show all button-->
@@ -104,7 +101,7 @@
           {#each columns as column}
             <td class="px-4 py-2" class:w-[24rem]={column === textColumn}>
               {#if column === 'similarity' && row[column] !== undefined}
-                <span class="mf-num">{scoreAsPercentage ? (row[column] * 100).toFixed(1) + '%' : row[column].toFixed(3)}</span>
+                <span class="mf-num">{(row[column] * 100).toFixed(1)}%</span>
               {:else if column === textColumn || sanitizePropertyNameForWeaviate(column) === textColumn}
                 {@html sanitizeAndFormatText(row[column]  || row[sanitizePropertyNameForWeaviate(column)]  || '')}
               {:else if is_link(row[column]  || row[sanitizePropertyNameForWeaviate(column)] )}

@@ -67,7 +67,7 @@
     }));
   };
 
-  async function handleSearch() {
+  async function handleSearch(resultCount = pageSize) {
     if (!searchQuery.trim() || !documentSet) return;
     hasResults = true;
     loading = true;
@@ -76,7 +76,7 @@
       const searchResponse = await api.searchDocumentSet({
         documentSetId: documentSet.documentSetId,
         query: searchQuery,
-        n_results: pageSize,
+        n_results: resultCount,
         offset: 0,
         filters: metadataFilters.map(filter => ({
           key: filter.key,
@@ -126,6 +126,12 @@
     } finally {
       loadingMore = false;
     }
+  }
+
+  function handleSortDifferently() {
+    const resultCount = Math.max(pageSize, results.length);
+    searchMode = searchMode === 'hybrid' ? 'semantic' : 'hybrid';
+    handleSearch(resultCount);
   }
 
   function addFilter() {
@@ -190,6 +196,7 @@
             bind:value={searchQuery}
             placeholder={"... " + placeholderQuery}
             data-testid="search-bar"
+            onkeydown={(e) => { if (e.key === 'Enter' && !loading && validApiKeysSet && searchQuery.trim()) handleSearch(); }}
             class="flex-1 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
           />
           <button
@@ -211,16 +218,6 @@
             about the same thing -- even if they have no keywords in common.
           </p>
         {/if}
-        <label class="flex items-center gap-1.5 text-xs text-gray-500">
-          <input
-            type="checkbox"
-            checked={searchMode === 'hybrid'}
-            onchange={(e) => (searchMode = e.currentTarget.checked ? 'hybrid' : 'semantic')}
-            data-testid="hybrid-toggle"
-            class="h-3 w-3"
-          />
-          Boost with exact keyword matching (hybrid search)
-        </label>
       </div>
 
       <!-- Metadata Filters -->
@@ -287,10 +284,9 @@
           {loadingMore}
           {hasMore}
           showMore={handleLoadMore}
+          sortDifferently={handleSortDifferently}
           {textColumn}
           {metadataColumns}
-          scoreLabel={searchMode === 'hybrid' ? 'hybrid score' : 'similarity'}
-          scoreAsPercentage={searchMode !== 'hybrid'}
           originalDocumentClick={handleOriginalDocumentClick}
           />
       </div>
