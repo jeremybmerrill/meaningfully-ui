@@ -10,6 +10,10 @@
     hasMore?: boolean;
     loadingMore?: boolean;
     showMore?: () => void;
+    // Re-runs the current search with the search mode toggled (semantic <-> hybrid).
+    sortDifferently?: () => void;
+    // Header text for the score column ('similarity' by default).
+    scoreLabel?: string;
     originalDocumentClick?: (sourceNodeId: string) => void;
   }
 
@@ -21,6 +25,8 @@
     hasMore = false,
     loadingMore = false,
     showMore = () => {},
+    sortDifferently = () => {},
+    scoreLabel = 'similarity',
     originalDocumentClick = () => {},
   }: Props = $props();
 
@@ -58,7 +64,7 @@
   // Function to download results as CSV
   const downloadCSV = () => {
     if (results.length === 0) return;
-    
+
     // Prepare data for Papa Parse
     const csvData = results.map(row => {
       const csvRow: Record<string, any> = {};
@@ -73,9 +79,9 @@
         csvRow[column] = row[column] || row[sanitizePropertyName(column)] ||  '';
       });
       
-      // Add similarity column, formatted as percentage
+      // Add the score column, formatted to match how it's displayed on screen.
       if (row.similarity !== undefined) {
-        csvRow.similarity = (row.similarity * 100).toFixed(1) + '%';
+        csvRow[scoreLabel] = (row.similarity * 100).toFixed(1) + '%';
       }
       
       return csvRow;
@@ -104,17 +110,35 @@
   <div class="flex justify-between items-center">
     <h2 class="text-xl font-semibold">Search Results</h2>
     {#if results.length > 0 && !loading}
-      <button
-        onclick={downloadCSV}
-        class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors flex items-center gap-2"
-        title="Download results as CSV"
-        data-testid="download-csv"
-      >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-        </svg>
-        Download CSV
-      </button>
+      <div class="flex items-center gap-3">
+        <button
+          onclick={sortDifferently}
+          disabled={loading || loadingMore}
+          title="Re-run this search the other way: hybrid search boosts semantic search with exact-keyword (BM25) matching."
+          data-testid="sort-differently-top"
+          class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m18 14 4 4-4 4"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m18 2 4 4-4 4"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 18h1.973a4 4 0 0 0 3.3-1.7l5.454-8.6a4 4 0 0 1 3.3-1.7H22"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 6h1.972a4 4 0 0 1 3.6 2.2"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M22 18h-6.041a4 4 0 0 1-3.3-1.8l-.359-.45"></path>
+          </svg>
+          Sort Results Differently
+        </button>
+        <button
+          onclick={downloadCSV}
+          class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors flex items-center gap-2"
+          title="Download results as CSV"
+          data-testid="download-csv"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          Download CSV
+        </button>
+      </div>
     {/if}
   </div>
   
@@ -133,21 +157,38 @@
         {textColumn}
         {metadataColumns}
         showSimilarity={true}
+        {scoreLabel}
         showShowOriginal={true}
         originalDocumentClick={originalDocumentClick}
       />
     </div>
     
-    {#if hasMore}
-      <div class="flex justify-center mt-4">
+    <div class="flex justify-center items-center gap-3 mt-4">
+      {#if hasMore}
         <button
           onclick={showMore}
           disabled={loadingMore}
-          class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+          class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loadingMore ? 'Loading...' : 'Show More'}
         </button>
-      </div>
-    {/if}
+      {/if}
+      <button
+        onclick={sortDifferently}
+        disabled={loading || loadingMore}
+        title="Re-run this search the other way: hybrid search boosts semantic search with exact-keyword (BM25) matching."
+        data-testid="sort-differently"
+        class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m18 14 4 4-4 4"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m18 2 4 4-4 4"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 18h1.973a4 4 0 0 0 3.3-1.7l5.454-8.6a4 4 0 0 1 3.3-1.7H22"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 6h1.972a4 4 0 0 1 3.6 2.2"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M22 18h-6.041a4 4 0 0 1-3.3-1.8l-.359-.45"></path>
+        </svg>
+        Sort Results Differently
+      </button>
+    </div>
   {/if}
 </div>

@@ -4,6 +4,8 @@
     textColumn: string;
     metadataColumns?: string[];
     showSimilarity?: boolean;
+    // Header text for the score column ('similarity' by default).
+    scoreLabel?: string;
     showShowOriginal?: boolean;
     originalDocumentClick?: (sourceNodeId: string) => void;
   }
@@ -13,12 +15,14 @@
     textColumn,
     metadataColumns = [],
     showSimilarity = false,
+    scoreLabel = 'similarity',
     showShowOriginal = false,
     originalDocumentClick = () => {},
   }: Props = $props();
 
-  // Combine all columns in display order: metadata, similarity
-  // text column is always called text internally, but we rename just the header.
+  // Combine all columns in display order: metadata, similarity/score.
+  // The 'similarity' key is the row's internal data key regardless of search mode; scoreLabel
+  // only controls its displayed header text (see below).
   let columns = $derived([textColumn, ...metadataColumns, ...(showSimilarity ? ['similarity'] : [])]);
 
 
@@ -84,7 +88,7 @@
     <thead>
       <tr class="bg-gray-100">
         {#each columns as column}
-          <th class="px-4 py-2 text-left border-b" class:w-[24rem]={column === textColumn}>{column}</th>
+          <th class="px-4 py-2 text-left border-b" class:w-[24rem]={column === textColumn}>{column === 'similarity' ? scoreLabel : column}</th>
         {/each}
         {#if showShowOriginal}
           <th class="px-4 py-2 text-left border-b"></th><!-- blank column for show all button-->

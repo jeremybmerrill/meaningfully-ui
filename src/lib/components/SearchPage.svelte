@@ -1,6 +1,6 @@
 <script lang="ts">
   import { navigate, Link } from 'svelte-routing';
-  import type { DocumentSet, MeaningfullyAPI } from '../types.js';
+  import type { DocumentSet, MeaningfullyAPI, SearchMode } from '../types.js';
   import Results from './Results.svelte';
 
   interface Props {
@@ -26,6 +26,10 @@
   const blankSearchQuery = '';
   let searchQuery = $state(blankSearchQuery);
   let metadataFilters: Array<{ key: string, operator: "==" | "in" | ">" | "<" | "!=" | ">=" | "<=" | "nin" | "any" | "all" | "text_match" | "contains" | "is_empty", value: any }> = $state([]);
+
+  // Hybrid search is a secondary option: it boosts semantic search with exact-keyword (BM25)
+  // matching, fusing the two rankings together. Metadata filters still apply in this mode.
+  let searchMode: SearchMode = $state('semantic');
 
   let results: Array<Record<string, any>> = $state([]);
   let error: string | null = $state(null);
@@ -63,7 +67,7 @@
     }));
   };
 
-  async function handleSearch() {
+  async function handleSearch(resultCount = pageSize) {
     if (!searchQuery.trim() || !documentSet) return;
     hasResults = true;
     loading = true;
@@ -72,13 +76,14 @@
       const searchResponse = await api.searchDocumentSet({
         documentSetId: documentSet.documentSetId,
         query: searchQuery,
-        n_results: pageSize,
+        n_results: resultCount,
         offset: 0,
         filters: metadataFilters.map(filter => ({
           key: filter.key,
           operator: filter.operator,
           value: filter.value
-        }))
+        })),
+        searchMode
       });
       results = mapSearchResults(searchResponse.results);
       hasMore = searchResponse.hasMore;
@@ -107,7 +112,8 @@
           key: filter.key,
           operator: filter.operator,
           value: filter.value
-        }))
+        })),
+        searchMode
       });
 
       const nextRows = mapSearchResults(searchResponse.results);
@@ -120,6 +126,12 @@
     } finally {
       loadingMore = false;
     }
+  }
+
+  function handleSortDifferently() {
+    const resultCount = Math.max(pageSize, results.length);
+    searchMode = searchMode === 'hybrid' ? 'semantic' : 'hybrid';
+    handleSearch(resultCount);
   }
 
   function addFilter() {
@@ -175,7 +187,7 @@
       <!-- Search Input -->
       <div class="space-y-2">
         <label for="search" class="block text-sm font-medium text-gray-700">
-          Semantic Search
+          {searchMode === 'hybrid' ? 'Hybrid Search' : 'Semantic Search'}
         </label>
         <div class="flex space-x-4">
           <input
@@ -184,6 +196,7 @@
             bind:value={searchQuery}
             placeholder={"... " + placeholderQuery}
             data-testid="search-bar"
+            onkeydown={(e) => { if (e.key === 'Enter' && !loading && validApiKeysSet && searchQuery.trim()) handleSearch(); }}
             class="flex-1 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
           />
           <button
@@ -195,14 +208,20 @@
             {loading ? 'Searching...' : 'Search'}
           </button>
         </div>
-        <p class="text-xs text-gray-500">
-          Need a hint? Imagine the perfect document that you hope might exist in your spreadsheet. Type it here. Meaningfully will find the real documents that mean 
-          about the same thing -- even if they have no keywords in common.
-        </p>
+        {#if searchMode === 'hybrid'}
+          <p class="text-xs text-gray-500">
+            Hybrid search boosts semantic search with exact-keyword matching, so documents that share your words rank higher too.
+          </p>
+        {:else}
+          <p class="text-xs text-gray-500">
+            Need a hint? Imagine the perfect document that you hope might exist in your spreadsheet. Type it here. Meaningfully will find the real documents that mean
+            about the same thing -- even if they have no keywords in common.
+          </p>
+        {/if}
       </div>
 
       <!-- Metadata Filters -->
-      {#if metadataColumns.length > 0}  
+      {#if metadataColumns.length > 0}
       <div class="space-y-2">
         <p class="block text-sm font-medium text-gray-700">
           Use filters to search a subset of rows in your spreadsheet.
@@ -265,6 +284,7 @@
           {loadingMore}
           {hasMore}
           showMore={handleLoadMore}
+          sortDifferently={handleSortDifferently}
           {textColumn}
           {metadataColumns}
           originalDocumentClick={handleOriginalDocumentClick}
