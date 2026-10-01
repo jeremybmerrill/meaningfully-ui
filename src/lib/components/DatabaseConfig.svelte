@@ -22,6 +22,12 @@
   let error = $state('');
   let selectedTextColumn = $state('');
   let selectedMetadataColumns: string[] = $state([]);
+  // "Search multiple columns" mode: selectedTextColumn is then the first checked column.
+  // Each checked column is searched separately (results are deduplicated by row).
+  let multiTextColumns = $state(false);
+  let selectedTextColumns: string[] = $state([]);
+  let textColumnsToSend = $derived(multiTextColumns ? selectedTextColumns : [selectedTextColumn]);
+  let extraTextColumns = $derived(textColumnsToSend.slice(1));
   // the subset of selected metadata columns whose contents are also embedded (and so searched) along with the text
   let embeddedMetadataColumns: string[] = $state([]);
   let generatingPreview = $state(false);
@@ -137,7 +143,7 @@
         fileName: fileData.name,
         datasetName,
         description: 'TK',
-        textColumns: [selectedTextColumn],
+        textColumns: textColumnsToSend.map(c => c), // copy: a $state proxy can't be sent over IPC
         metadataColumns: selectedMetadataColumns.map(c => c),
         embeddedMetadataColumns: embeddedMetadataColumns.map(c => c), // copy: a $state proxy can't be sent over IPC
         splitIntoSentences,
@@ -155,7 +161,8 @@
         pricePer1M = previewResponse.pricePer1M;
         previewData = previewResponse.nodes.map((result: Record<string, any>) => ({
           ...result.metadata,
-          [selectedTextColumn]: result.text
+          // with several text columns, each result is a chunk of one of them
+          [result.metadata?.mf_column ?? selectedTextColumn]: result.text
         }));
       } else {
         error = previewResponse.message || 'Preview generation failed'; // fastify responses don't throw
@@ -190,7 +197,7 @@
         fileName: fileData.name,
         datasetName,
         description: 'TK',
-        textColumns: [selectedTextColumn],
+        textColumns: textColumnsToSend.map(c => c), // copy: a $state proxy can't be sent over IPC
         metadataColumns: selectedMetadataColumns.map(c => c),
         embeddedMetadataColumns: embeddedMetadataColumns.map(c => c), // copy: a $state proxy can't be sent over IPC
         splitIntoSentences,
@@ -219,7 +226,7 @@
   };
 
   const toggleMetadataColumn = (column: string) => {
-    if (column === selectedTextColumn) return;
+    if (textColumnsToSend.includes(column)) return;
     const index = selectedMetadataColumns.indexOf(column);
     if (index === -1) {
       selectedMetadataColumns = [...selectedMetadataColumns, column];
@@ -233,6 +240,21 @@
     embeddedMetadataColumns = embeddedMetadataColumns.includes(column)
       ? embeddedMetadataColumns.filter(c => c !== column)
       : [...embeddedMetadataColumns, column];
+  };
+
+  const toggleTextColumn = (column: string) => {
+    selectedTextColumns = selectedTextColumns.includes(column)
+      ? selectedTextColumns.filter(c => c !== column)
+      : [...selectedTextColumns, column];
+    selectedTextColumn = selectedTextColumns[0] ?? '';
+    // a text column can't also be a metadata column
+    selectedMetadataColumns = selectedMetadataColumns.filter(c => !selectedTextColumns.includes(c));
+    embeddedMetadataColumns = embeddedMetadataColumns.filter(c => !selectedTextColumns.includes(c));
+  };
+
+  const toggleMultiTextColumns = () => {
+    multiTextColumns = !multiTextColumns;
+    selectedTextColumns = multiTextColumns && selectedTextColumn ? [selectedTextColumn] : [];
   };
 
   const toggleTextHandlingSectionCollapse = () => {
@@ -252,6 +274,7 @@
       splitIntoSentences,
       combineSentencesIntoChunks,
       selectedTextColumn,
+      extraTextColumns: extraTextColumns.join('\u0000'),
       embeddedMetadataColumns: embeddedMetadataColumns.join('\u0000'),
       modelName,
       modelProvider,
@@ -344,19 +367,47 @@
       <h3>Column Configuration</h3>
       <div class="space-y-4">
         <div class="space-y-2">
-          <label class="block text-sm font-medium text-gray-700">
-            Which column holds the text you want to search?
+          <div class="flex items-center justify-between">
+            <p class="block text-sm font-medium text-gray-700">
+              Which column holds the text you want to search?
+            </p>
+            <button
+              type="button"
+              onclick={toggleMultiTextColumns}
+              class="text-xs text-gray-500 hover:text-gray-700 underline"
+              data-testid="toggle-multiple-text-columns"
+            >
+              {multiTextColumns ? 'Search a single column' : 'Search multiple columns'}
+            </button>
+          </div>
+          {#if multiTextColumns}
+            <div class="flex flex-wrap gap-2" data-testid="columns-to-embed-checkboxes">
+              {#each fileData.availableColumns as column}
+                <label class="inline-flex items-center">
+                  <input
+                    type="checkbox"
+                    id={`text-${column}`}
+                    checked={selectedTextColumns.includes(column)}
+                    onchange={() => toggleTextColumn(column)}
+                    class="rounded border-gray-300 text-violet-600 shadow-sm focus:border-violet-500 focus:ring-violet-500"
+                  />
+                  <span class="ml-2 text-sm text-gray-700">{column}</span>
+                </label>
+              {/each}
+            </div>
+          {:else}
             <select
               bind:value={selectedTextColumn}
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500"
               data-testid="column-to-embed-select"
+              aria-label="Which column holds the text you want to search?"
             >
               <option value="">Select a column...</option>
               {#each fileData.availableColumns as column}
                 <option value={column}>{column}</option>
               {/each}
             </select>
-          </label>
+          {/if}
         </div>
 
         <div class="space-y-2">
@@ -374,7 +425,7 @@
                   type="checkbox"
                   id={`metadata-${column}`}
                   checked={selectedMetadataColumns.includes(column)}
-                  disabled={column === selectedTextColumn}
+                  disabled={textColumnsToSend.includes(column)}
                   onchange={() => toggleMetadataColumn(column)}
                   class="rounded border-gray-300 text-violet-600 shadow-sm focus:border-violet-500 focus:ring-violet-500"
                 />
@@ -484,6 +535,7 @@
               <Preview
                 previewData={previewData}
                 textColumn={selectedTextColumn}
+                {extraTextColumns}
                 metadataColumns={selectedMetadataColumns}
                 loading={generatingPreview}
               />
