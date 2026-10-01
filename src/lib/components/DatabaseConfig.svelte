@@ -22,6 +22,8 @@
   let error = $state('');
   let selectedTextColumn = $state('');
   let selectedMetadataColumns: string[] = $state([]);
+  // the subset of selected metadata columns whose contents are also embedded (and so searched) along with the text
+  let embeddedMetadataColumns: string[] = $state([]);
   let generatingPreview = $state(false);
   let datasetName = $state('');
   const defaultChunkSize = 100;
@@ -137,6 +139,7 @@
         description: 'TK',
         textColumns: [selectedTextColumn],
         metadataColumns: selectedMetadataColumns.map(c => c),
+        embeddedMetadataColumns: embeddedMetadataColumns.map(c => c), // copy: a $state proxy can't be sent over IPC
         splitIntoSentences,
         combineSentencesIntoChunks,
         sploderMaxSize: 100,
@@ -189,6 +192,7 @@
         description: 'TK',
         textColumns: [selectedTextColumn],
         metadataColumns: selectedMetadataColumns.map(c => c),
+        embeddedMetadataColumns: embeddedMetadataColumns.map(c => c), // copy: a $state proxy can't be sent over IPC
         splitIntoSentences,
         combineSentencesIntoChunks,
         sploderMaxSize: 100,
@@ -221,7 +225,14 @@
       selectedMetadataColumns = [...selectedMetadataColumns, column];
     } else {
       selectedMetadataColumns = selectedMetadataColumns.filter(c => c !== column);
+      embeddedMetadataColumns = embeddedMetadataColumns.filter(c => c !== column);
     }
+  };
+
+  const toggleEmbeddedMetadataColumn = (column: string) => {
+    embeddedMetadataColumns = embeddedMetadataColumns.includes(column)
+      ? embeddedMetadataColumns.filter(c => c !== column)
+      : [...embeddedMetadataColumns, column];
   };
 
   const toggleTextHandlingSectionCollapse = () => {
@@ -241,6 +252,7 @@
       splitIntoSentences,
       combineSentencesIntoChunks,
       selectedTextColumn,
+      embeddedMetadataColumns: embeddedMetadataColumns.join('\u0000'),
       modelName,
       modelProvider,
     };
@@ -368,8 +380,24 @@
                 />
                 <span class="ml-2 text-sm text-gray-700">{column}</span>
               </label>
+              {#if selectedMetadataColumns.includes(column)}
+                <label class="inline-flex items-center -ml-1" title="Also search the contents of this column, along with the text">
+                  <input
+                    type="checkbox"
+                    id={`embed-${column}`}
+                    checked={embeddedMetadataColumns.includes(column)}
+                    onchange={() => toggleEmbeddedMetadataColumn(column)}
+                    class="rounded border-gray-300 text-violet-600 shadow-sm focus:border-violet-500 focus:ring-violet-500"
+                  />
+                  <span class="ml-1 text-xs text-gray-500">also search</span>
+                </label>
+              {/if}
             {/each}
           </div>
+          <p class="text-xs text-gray-500">
+            Checking "also search" for a column includes its contents when searching, which is useful if the text doesn't mention those details itself.
+            It's added to every passage of the text, so it works best for short values.
+          </p>
         </div>
       </div>    
     </div>

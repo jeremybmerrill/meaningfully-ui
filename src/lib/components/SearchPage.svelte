@@ -308,13 +308,14 @@
         </thead>
         <tbody>
           <tr>
-            <td class="px-4 py-2 text-left border-b text-black">Original text</td>
+            <td class="px-4 py-2 text-left border-b text-black">{textColumn || 'Original text'}</td>
             <td class="px-4 py-2 border-b text-black">{modalContent.text}</td>
           </tr>
-          {#each metadataColumns as key}
+          <!-- show every column, not just the ones selected for the results list -->
+          {#each Object.entries(modalContent.metadata ?? {}) as [key, value]}
             <tr>
               <td class="px-4 py-2 text-left border-b text-black">{key}</td>
-              <td class="px-4 py-2 border-b text-black">{modalContent.metadata[key]}</td>
+              <td class="px-4 py-2 border-b text-black">{value}</td>
             </tr>
           {/each}
         </tbody>
