@@ -248,8 +248,10 @@
     </div>
   {/if}
 
-  <div class="grid grid-cols-1 md:grid-cols-[minmax(13rem,1fr)_2fr] gap-5 items-start">
-    <div>
+  <!-- With lots of columns, the left list scrolls on its own: side by side, it takes zero height
+       (md:h-0) and grows to fill the row, so the bins on the right set the height; stacked, it's capped. -->
+  <div class="grid grid-cols-1 md:grid-cols-[minmax(13rem,1fr)_2fr] gap-5 items-start md:items-stretch">
+    <div class="flex flex-col">
       <p class="mb-2 text-sm font-medium text-gray-700">Columns in your spreadsheet</p>
       <!-- drop target; the chips' move menu is the keyboard path -->
       <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -258,7 +260,7 @@
         ondragover={(e) => handleZoneDragOver(e, 'none')}
         ondragleave={(e) => handleZoneDragLeave(e, 'none')}
         ondrop={handleDrop}
-        class="flex flex-col gap-1.5 min-h-[7rem] rounded-lg border p-2.5 transition-colors
+        class="flex flex-col gap-1.5 min-h-[7rem] max-h-[60vh] overflow-y-auto md:max-h-none md:h-0 md:grow rounded-lg border p-2.5 transition-colors
           {dropTarget?.target === 'none' ? 'border-violet-500 bg-violet-50' : 'border-gray-300 bg-gray-50'}"
       >
         {#each unusedColumns as column (column)}
