@@ -2,6 +2,11 @@
   import { navigate } from 'svelte-routing';
   import Papa from 'papaparse';
   import { fileDataStore } from '../stores/fileDataStore.js';
+  import { computeColumnStats } from '../columnStats.js';
+
+  // validation only looks at the first few rows; column stats (unique counts, common values) use more
+  const VALIDATION_ROWS = 10;
+  const STATS_ROW_LIMIT = 10000;
 
   let {
     validApiKeysSet,
@@ -66,10 +71,12 @@
       complete: async (results) => {
         if (token !== selectionToken) return;
 
-        if (results.errors.length > 0) {
+        // errors without a row (e.g. an undetectable delimiter) apply to the whole file
+        const validationErrors = results.errors.filter(e => e.row === undefined || e.row < VALIDATION_ROWS);
+        if (validationErrors.length > 0) {
           isProcessing = false;
           error = `That file (${file.name}) is invalid. Choose another CSV file`;
-          console.error('CSV parsing errors:', results.errors);
+          console.error('CSV parsing errors:', validationErrors);
           return;
         }
 
@@ -80,12 +87,18 @@
           return;
         }
 
+        const rows = results.data as Record<string, string>[];
+        const columnStats = computeColumnStats(rows, availableColumns);
+
         // Store file data in sessionStorage for the next step
         const fileData = {
           name: file.name,
           size: file.size,
           lastModified: file.lastModified,
           availableColumns,
+          columnStats,
+          statsRowCount: rows.length,
+          statsTruncated: results.meta.truncated,
         };
 
         // Store the actual file as a base64 string
@@ -117,7 +130,7 @@
       },
       header: true,
       skipEmptyLines: true,
-      preview: 10 // Only parse first 10 rows for validation
+      preview: STATS_ROW_LIMIT
     });
   };
 </script>
