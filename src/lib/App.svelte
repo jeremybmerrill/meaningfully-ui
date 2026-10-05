@@ -8,7 +8,6 @@
   import HelpPage from './components/HelpPage.svelte'
   import ApiKeyStatus from './components/ApiKeyStatus.svelte'
   import type { MeaningfullyAPI } from './types.js';
-  import { useLegacyColumnPicker } from './stores/columnPickerStore.js';
 
   interface Props {
     api: MeaningfullyAPI;
@@ -34,10 +33,8 @@
 
   // Secrets, typed outside a form field:
   //  - "top8" flips the app into the "Personal Page" look; typing it again flips back to the Card Catalog default.
-  //  - "oldpicker" switches the upload page's column picker to the previous interface, and back.
   const secretCodes: Record<string, () => void> = {
     top8: () => applyPersonalPageTheme(document.documentElement.getAttribute('data-theme') !== 'personal-page'),
-    oldpicker: () => useLegacyColumnPicker.update(useLegacy => !useLegacy),
   };
   const longestSecretCode = Math.max(...Object.keys(secretCodes).map(code => code.length));
   let secretBuffer = '';
