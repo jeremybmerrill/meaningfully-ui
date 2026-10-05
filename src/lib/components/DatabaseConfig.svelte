@@ -3,6 +3,9 @@
   import { navigate } from 'svelte-routing';
   import { debounce } from 'lodash';
   import Preview from './Preview.svelte';
+  import ColumnSorter from './ColumnSorter.svelte';
+  import LegacyColumnPicker from './LegacyColumnPicker.svelte';
+  import { useLegacyColumnPicker } from '../stores/columnPickerStore.js';
   import { fileDataStore } from '../stores/fileDataStore';
   import type { MeaningfullyAPI } from '../types';
 
@@ -20,16 +23,16 @@
   let fileData: any = $state(null);
   let uploading = $state(false);
   let error = $state('');
-  let selectedTextColumn = $state('');
-  let selectedMetadataColumns: string[] = $state([]);
-  // "Search multiple columns" mode: selectedTextColumn is then the first checked column.
-  // Each checked column is searched separately (results are deduplicated by row).
-  let multiTextColumns = $state(false);
-  let selectedTextColumns: string[] = $state([]);
-  let textColumnsToSend = $derived(multiTextColumns ? selectedTextColumns : [selectedTextColumn]);
-  let extraTextColumns = $derived(textColumnsToSend.slice(1));
-  // the subset of selected metadata columns whose contents are also embedded (and so searched) along with the text
+  // Each text column is searched separately (results are deduplicated by row); the first is the "main" one.
+  let textColumnsToSend: string[] = $state([]);
+  // metadata columns whose contents are also embedded (and so searched) along with the text
   let embeddedMetadataColumns: string[] = $state([]);
+  // metadata columns that are only shown (and filterable), not searched
+  let shownOnlyMetadataColumns: string[] = $state([]);
+  let selectedTextColumn = $derived(textColumnsToSend[0] ?? '');
+  let extraTextColumns = $derived(textColumnsToSend.slice(1));
+  // embedded metadata is still metadata, so it's shown too
+  let selectedMetadataColumns = $derived([...embeddedMetadataColumns, ...shownOnlyMetadataColumns]);
   let generatingPreview = $state(false);
   let datasetName = $state('');
   const defaultChunkSize = 100;
@@ -225,38 +228,6 @@
     }
   };
 
-  const toggleMetadataColumn = (column: string) => {
-    if (textColumnsToSend.includes(column)) return;
-    const index = selectedMetadataColumns.indexOf(column);
-    if (index === -1) {
-      selectedMetadataColumns = [...selectedMetadataColumns, column];
-    } else {
-      selectedMetadataColumns = selectedMetadataColumns.filter(c => c !== column);
-      embeddedMetadataColumns = embeddedMetadataColumns.filter(c => c !== column);
-    }
-  };
-
-  const toggleEmbeddedMetadataColumn = (column: string) => {
-    embeddedMetadataColumns = embeddedMetadataColumns.includes(column)
-      ? embeddedMetadataColumns.filter(c => c !== column)
-      : [...embeddedMetadataColumns, column];
-  };
-
-  const toggleTextColumn = (column: string) => {
-    selectedTextColumns = selectedTextColumns.includes(column)
-      ? selectedTextColumns.filter(c => c !== column)
-      : [...selectedTextColumns, column];
-    selectedTextColumn = selectedTextColumns[0] ?? '';
-    // a text column can't also be a metadata column
-    selectedMetadataColumns = selectedMetadataColumns.filter(c => !selectedTextColumns.includes(c));
-    embeddedMetadataColumns = embeddedMetadataColumns.filter(c => !selectedTextColumns.includes(c));
-  };
-
-  const toggleMultiTextColumns = () => {
-    multiTextColumns = !multiTextColumns;
-    selectedTextColumns = multiTextColumns && selectedTextColumn ? [selectedTextColumn] : [];
-  };
-
   const toggleTextHandlingSectionCollapse = () => {
     isCollapsed = !isCollapsed;
   };
@@ -365,92 +336,23 @@
   
     <div class="bg-white p-6 rounded-lg shadow space-y-6 text-black mb-10">
       <h3>Column Configuration</h3>
-      <div class="space-y-4">
-        <div class="space-y-2">
-          <div class="flex items-center justify-between">
-            <p class="block text-sm font-medium text-gray-700">
-              Which column holds the text you want to search?
-            </p>
-            <button
-              type="button"
-              onclick={toggleMultiTextColumns}
-              class="text-xs text-gray-500 hover:text-gray-700 underline"
-              data-testid="toggle-multiple-text-columns"
-            >
-              {multiTextColumns ? 'Search a single column' : 'Search multiple columns'}
-            </button>
-          </div>
-          {#if multiTextColumns}
-            <div class="flex flex-wrap gap-2" data-testid="columns-to-embed-checkboxes">
-              {#each fileData.availableColumns as column}
-                <label class="inline-flex items-center">
-                  <input
-                    type="checkbox"
-                    id={`text-${column}`}
-                    checked={selectedTextColumns.includes(column)}
-                    onchange={() => toggleTextColumn(column)}
-                    class="rounded border-gray-300 text-violet-600 shadow-sm focus:border-violet-500 focus:ring-violet-500"
-                  />
-                  <span class="ml-2 text-sm text-gray-700">{column}</span>
-                </label>
-              {/each}
-            </div>
-          {:else}
-            <select
-              bind:value={selectedTextColumn}
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500"
-              data-testid="column-to-embed-select"
-              aria-label="Which column holds the text you want to search?"
-            >
-              <option value="">Select a column...</option>
-              {#each fileData.availableColumns as column}
-                <option value={column}>{column}</option>
-              {/each}
-            </select>
-          {/if}
-        </div>
-
-        <div class="space-y-2">
-          <p class="block text-sm font-medium text-gray-700">
-            Which other columns should be shown in the results, and available for filtering?
-          </p>
-          <p class="text-xs text-gray-500">
-            For instance, if your spreadsheet has a <code>Category</code> column, you might want to select it so you can filter by it when searching. If it has a 
-            <code>URL</code>, you might select it so you can click through to the original.
-          </p>
-          <div class="flex flex-wrap gap-2">
-            {#each fileData.availableColumns as column}
-              <label class="inline-flex items-center">
-                <input
-                  type="checkbox"
-                  id={`metadata-${column}`}
-                  checked={selectedMetadataColumns.includes(column)}
-                  disabled={textColumnsToSend.includes(column)}
-                  onchange={() => toggleMetadataColumn(column)}
-                  class="rounded border-gray-300 text-violet-600 shadow-sm focus:border-violet-500 focus:ring-violet-500"
-                />
-                <span class="ml-2 text-sm text-gray-700">{column}</span>
-              </label>
-              {#if selectedMetadataColumns.includes(column)}
-                <label class="inline-flex items-center -ml-1" title="Also search the contents of this column, along with the text">
-                  <input
-                    type="checkbox"
-                    id={`embed-${column}`}
-                    checked={embeddedMetadataColumns.includes(column)}
-                    onchange={() => toggleEmbeddedMetadataColumn(column)}
-                    class="rounded border-gray-300 text-violet-600 shadow-sm focus:border-violet-500 focus:ring-violet-500"
-                  />
-                  <span class="ml-1 text-xs text-gray-500">also search</span>
-                </label>
-              {/if}
-            {/each}
-          </div>
-          <p class="text-xs text-gray-500">
-            Checking "also search" for a column includes its contents when searching, which is useful if the text doesn't mention those details itself.
-            It's added to every passage of the text, so it works best for short values.
-          </p>
-        </div>
-      </div>    
+      {#if $useLegacyColumnPicker}
+        <LegacyColumnPicker
+          availableColumns={fileData.availableColumns}
+          bind:textColumns={textColumnsToSend}
+          bind:searchColumns={embeddedMetadataColumns}
+          bind:showColumns={shownOnlyMetadataColumns}
+        />
+      {:else}
+        <ColumnSorter
+          availableColumns={fileData.availableColumns}
+          columnStats={fileData.columnStats}
+          statsTruncated={fileData.statsTruncated}
+          bind:textColumns={textColumnsToSend}
+          bind:searchColumns={embeddedMetadataColumns}
+          bind:showColumns={shownOnlyMetadataColumns}
+        />
+      {/if}
     </div>
     
     <div class="bg-white p-6 rounded-lg shadow space-y-6 text-black mb-10">
