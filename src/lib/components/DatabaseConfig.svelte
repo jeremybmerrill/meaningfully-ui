@@ -4,8 +4,6 @@
   import { debounce } from 'lodash';
   import Preview from './Preview.svelte';
   import ColumnSorter from './ColumnSorter.svelte';
-  import LegacyColumnPicker from './LegacyColumnPicker.svelte';
-  import { useLegacyColumnPicker } from '../stores/columnPickerStore.js';
   import { fileDataStore } from '../stores/fileDataStore';
   import type { MeaningfullyAPI } from '../types';
 
@@ -336,23 +334,14 @@
   
     <div class="bg-white p-6 rounded-lg shadow space-y-6 text-black mb-10">
       <h3>Column Configuration</h3>
-      {#if $useLegacyColumnPicker}
-        <LegacyColumnPicker
-          availableColumns={fileData.availableColumns}
-          bind:textColumns={textColumnsToSend}
-          bind:searchColumns={embeddedMetadataColumns}
-          bind:showColumns={shownOnlyMetadataColumns}
-        />
-      {:else}
-        <ColumnSorter
-          availableColumns={fileData.availableColumns}
-          columnStats={fileData.columnStats}
-          statsTruncated={fileData.statsTruncated}
-          bind:textColumns={textColumnsToSend}
-          bind:searchColumns={embeddedMetadataColumns}
-          bind:showColumns={shownOnlyMetadataColumns}
-        />
-      {/if}
+      <ColumnSorter
+        availableColumns={fileData.availableColumns}
+        columnStats={fileData.columnStats}
+        statsTruncated={fileData.statsTruncated}
+        bind:textColumns={textColumnsToSend}
+        bind:searchColumns={embeddedMetadataColumns}
+        bind:showColumns={shownOnlyMetadataColumns}
+      />
     </div>
     
     <div class="bg-white p-6 rounded-lg shadow space-y-6 text-black mb-10">
