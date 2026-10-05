@@ -4,8 +4,7 @@
   import { fileDataStore } from '../stores/fileDataStore.js';
   import { computeColumnStats } from '../columnStats.js';
 
-  // validation only looks at the first few rows; column stats (unique counts, common values) use more
-  const VALIDATION_ROWS = 10;
+  // rows parsed to validate the file and compute column stats (unique counts, common values)
   const STATS_ROW_LIMIT = 10000;
 
   let {
@@ -71,12 +70,10 @@
       complete: async (results) => {
         if (token !== selectionToken) return;
 
-        // errors without a row (e.g. an undetectable delimiter) apply to the whole file
-        const validationErrors = results.errors.filter(e => e.row === undefined || e.row < VALIDATION_ROWS);
-        if (validationErrors.length > 0) {
+        if (results.errors.length > 0) {
           isProcessing = false;
           error = `That file (${file.name}) is invalid. Choose another CSV file`;
-          console.error('CSV parsing errors:', validationErrors);
+          console.error('CSV parsing errors:', results.errors);
           return;
         }
 
