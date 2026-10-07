@@ -2,6 +2,7 @@
   import { navigate, Link } from 'svelte-routing';
   import type { DocumentSet, MeaningfullyAPI, SearchMode } from '../types.js';
   import Results from './Results.svelte';
+  import { displayColumnName } from '../columnName.js';
 
   interface Props {
     validApiKeysSet: boolean;
@@ -235,7 +236,7 @@
               <select bind:value={filter.key} class="px-2 py-1 border border-gray-300 rounded-md">
                 <option value="" disabled>Select column</option>
                 {#each metadataColumns as column}
-                  <option value={column}>{column}</option>
+                  <option value={column}>{displayColumnName(column)}</option>
                 {/each}
               </select>
               <select bind:value={filter.operator} class="px-2 py-1 border border-gray-300 rounded-md">
@@ -312,13 +313,13 @@
         </thead>
         <tbody>
           <tr>
-            <td class="px-4 py-2 text-left border-b text-black">{modalContent.metadata?.mf_column ?? (textColumn || 'Original text')}</td>
+            <td class="px-4 py-2 text-left border-b text-black">{modalContent.metadata?.mf_column !== undefined ? displayColumnName(modalContent.metadata.mf_column) : (textColumn ? displayColumnName(textColumn) : 'Original text')}</td>
             <td class="px-4 py-2 border-b text-black">{modalContent.text}</td>
           </tr>
           <!-- show every column, not just the ones selected for the results list -->
           {#each Object.entries(modalContent.metadata ?? {}).filter(([key]) => key !== 'mf_row' && key !== 'mf_column') as [key, value]}
             <tr>
-              <td class="px-4 py-2 text-left border-b text-black">{key}</td>
+              <td class="px-4 py-2 text-left border-b text-black">{displayColumnName(key)}</td>
               <td class="px-4 py-2 border-b text-black">{value}</td>
             </tr>
           {/each}

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { displayColumnName } from '../columnName.js';
   // The previous column-selection interface (a dropdown or checkboxes for the text column(s),
   // and checkboxes for metadata columns with "also search" sub-checkboxes), kept so it can be
   // compared live with ColumnSorter: type "oldpicker" to switch. It binds the same three lists
@@ -89,7 +90,7 @@
               onchange={() => toggleTextColumn(column)}
               class="rounded border-gray-300 text-violet-600 shadow-sm focus:border-violet-500 focus:ring-violet-500"
             />
-            <span class="ml-2 text-sm text-gray-700">{column}</span>
+            <span class="ml-2 text-sm text-gray-700">{displayColumnName(column)}</span>
           </label>
         {/each}
       </div>
@@ -103,7 +104,7 @@
       >
         <option value="">Select a column...</option>
         {#each availableColumns as column}
-          <option value={column}>{column}</option>
+          <option value={column}>{displayColumnName(column)}</option>
         {/each}
       </select>
     {/if}
@@ -128,7 +129,7 @@
             onchange={() => toggleMetadataColumn(column)}
             class="rounded border-gray-300 text-violet-600 shadow-sm focus:border-violet-500 focus:ring-violet-500"
           />
-          <span class="ml-2 text-sm text-gray-700">{column}</span>
+          <span class="ml-2 text-sm text-gray-700">{displayColumnName(column)}</span>
         </label>
         {#if selectedMetadataColumns.includes(column)}
           <label class="inline-flex items-center -ml-1" title="Also search the contents of this column, along with the text">

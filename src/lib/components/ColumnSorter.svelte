@@ -1,6 +1,7 @@
 <script lang="ts">
   import { tick } from 'svelte';
   import type { ColumnStats, ColumnKind } from '../columnStats.js';
+  import { displayColumnName } from '../columnName.js';
 
   type Bin = 'text' | 'search' | 'show';
   type Target = Bin | 'none';
@@ -222,7 +223,7 @@
             data-testid={`column-kind-${column}`}
             data-kind={kind}
           ></span><span class="sr-only">({kindHint(kind)})</span>
-        {/if}{column}
+        {/if}{displayColumnName(column)}
       </span>
       {#if columnStats[column]}
         <span class="whitespace-nowrap text-[11px] text-gray-500" title={statsTruncated ? 'Counted in the first part of the file' : undefined}>
@@ -256,7 +257,7 @@
 
   {#if selectedColumn}
     <div class="rounded-md border border-violet-500 bg-violet-50 px-3 py-2 text-sm text-gray-700" data-testid="column-move-menu">
-      Move <strong>{selectedColumn}</strong> to:
+      Move <strong>{displayColumnName(selectedColumn)}</strong> to:
       <span class="inline-flex flex-wrap gap-2 ml-1 align-middle">
         {#each bins as bin}
           <button

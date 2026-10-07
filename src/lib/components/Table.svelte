@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { displayColumnName } from '../columnName.js';
+
   interface Props {
     data?: Array<Record<string, any>>;
     textColumn: string;
@@ -93,7 +95,7 @@
     <thead>
       <tr class="bg-gray-100">
         {#each columns as column}
-          <th class="px-4 py-2 text-left border-b" class:w-[24rem]={isTextColumn(column)}>{column === 'similarity' ? scoreLabel : column}</th>
+          <th class="px-4 py-2 text-left border-b" class:w-[24rem]={isTextColumn(column)}>{column === 'similarity' ? scoreLabel : displayColumnName(column)}</th>
         {/each}
         {#if showShowOriginal}
           <th class="px-4 py-2 text-left border-b"></th><!-- blank column for show all button-->
