@@ -1,6 +1,6 @@
 <script lang="ts">
   import { tick } from 'svelte';
-  import type { ColumnStats } from '../columnStats.js';
+  import type { ColumnStats, ColumnKind } from '../columnStats.js';
 
   type Bin = 'text' | 'search' | 'show';
   type Target = Bin | 'none';
@@ -161,12 +161,34 @@
     handleDragEnd();
   };
 
+  // Each bin has a color, used for the top edge of the cards in it, and for a dot by its title
+  // that matches the dot on cards whose column looks like it belongs there.
   const chipColor: Record<Target, string> = {
     none: 'border-t-gray-300',
     text: 'border-t-violet-600',
-    search: 'border-t-purple-600',
+    search: 'border-t-[#5a8a76]',
     show: 'border-t-gray-400'
   };
+  const dotColor: Record<Bin, string> = {
+    text: 'bg-violet-600',
+    search: 'bg-[#5a8a76]',
+    show: 'bg-gray-400'
+  };
+
+  const suggestedBin: Record<ColumnKind, Bin> = {
+    text: 'text',
+    categorical: 'search',
+    numeric: 'show',
+    id: 'show'
+  };
+  const kindLabel: Record<ColumnKind, string> = {
+    text: 'Looks like text',
+    categorical: 'Looks like categories',
+    numeric: 'Looks like numbers or dates',
+    id: 'Looks like IDs or links'
+  };
+  const kindHint = (kind: ColumnKind) =>
+    `${kindLabel[kind]}, which usually go in "${bins.find(b => b.id === suggestedBin[kind])?.title}"`;
 </script>
 
 {#snippet chip(column: string, target: Target)}
@@ -191,7 +213,17 @@
       <span class="absolute -left-[7px] top-0 bottom-0 w-[3px] rounded bg-violet-500" aria-hidden="true"></span>
     {/if}
     <span class="flex w-full flex-wrap items-baseline justify-between gap-x-2">
-      <span class="text-sm font-semibold text-gray-800 break-all">{column}</span>
+      <span class="text-sm font-semibold text-gray-800 break-all">
+        {#if columnStats[column]?.kind}
+          {@const kind = columnStats[column].kind}
+          <span
+            class="mr-1 inline-block size-2 rounded-full align-middle {dotColor[suggestedBin[kind]]}"
+            title={kindHint(kind)}
+            data-testid={`column-kind-${column}`}
+            data-kind={kind}
+          ></span><span class="sr-only">({kindHint(kind)})</span>
+        {/if}{column}
+      </span>
       {#if columnStats[column]}
         <span class="whitespace-nowrap text-[11px] text-gray-500" title={statsTruncated ? 'Counted in the first part of the file' : undefined}>
           {columnStats[column].uniqueCount.toLocaleString()}{statsTruncated ? '+' : ''} unique
@@ -290,7 +322,9 @@
               {selectedColumn && binOf(selectedColumn) !== bin.id ? 'cursor-pointer hover:bg-violet-50' : ''}"
           >
             <div class="flex flex-wrap items-baseline gap-2">
-              <h4 class="text-base font-semibold">{bin.title}</h4>
+              <h4 class="text-base font-semibold">
+                <span class="mr-1 inline-block size-2 rounded-full align-middle {dotColor[bin.id]}" aria-hidden="true"></span>{bin.title}
+              </h4>
               <span class="rounded border px-1.5 text-[11px] {bin.badge === 'required' ? 'border-red-600 text-red-600' : 'border-gray-200 text-gray-500'}">{bin.badge}</span>
             </div>
             <p class="mt-1 mb-2.5 text-xs text-gray-600">{bin.hint}</p>
