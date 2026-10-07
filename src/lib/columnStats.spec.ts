@@ -79,6 +79,11 @@ describe('classifyColumn', () => {
     expect(kindOf('status', ['Open', 'Closed', 'Closed', 'Open', 'Pending', 'Closed'])).toBe('categorical');
   });
 
+  it('counts numbers with a few repeated values, like years and ratings, as categorical', () => {
+    expect(kindOf('year', ['2021', '2022', '2022', '2023', '2021', '2024', '2023', '2022'])).toBe('categorical');
+    expect(kindOf('rating', ['4', '5', '3', '5', '4', '4', '1', '5'])).toBe('categorical');
+  });
+
   it('recognizes numbers, money, percentages and dates as numeric', () => {
     expect(kindOf('amount', ['$1,200.50', '$35', '$980.00', '$12,000', '$7.25'])).toBe('numeric');
     expect(kindOf('rate', ['12%', '3.5%', '-0.25%', '40%'])).toBe('numeric');

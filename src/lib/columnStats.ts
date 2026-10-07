@@ -3,7 +3,7 @@
 
 // A guess at what a column holds, used to hint which bin it belongs in:
 //  - text: prose to search (descriptions, comments, transcripts)
-//  - categorical: a handful of repeated values (status, category, neighborhood)
+//  - categorical: a handful of repeated values (status, category, neighborhood, year, rating)
 //  - numeric: numbers and dates
 //  - id: identifiers and links (IDs, codes, URLs, email addresses)
 export type ColumnKind = 'text' | 'categorical' | 'numeric' | 'id';
@@ -49,8 +49,9 @@ export function classifyColumn(name: string, values: string[], uniqueCount: numb
   if (mostly(values, v => LINK.test(v))) return 'id';
   // unique whole numbers could be IDs or amounts; go by the column's name
   if (mostlyUnique && ID_NAME.test(name) && mostly(values, v => INTEGER.test(v))) return 'id';
-  if (mostly(values, v => (NUMBER.test(v) && /\d/.test(v)) || DATE.test(v))) return 'numeric';
+  // checked before numeric, so numbers with a few repeated values (years, ratings) count as categories
   if (isCategorical) return 'categorical';
+  if (mostly(values, v => (NUMBER.test(v) && /\d/.test(v)) || DATE.test(v))) return 'numeric';
   if (mostlyUnique && mostly(values, v => v.length <= MAX_ID_LENGTH && !/\s/.test(v))) return 'id';
   return 'text';
 }
