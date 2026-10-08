@@ -94,8 +94,8 @@
   <table class="min-w-full table-auto border-collapse">
     <thead>
       <tr class="bg-gray-100">
-        {#each columns as column}
-          <th class="px-4 py-2 text-left border-b" class:w-[24rem]={isTextColumn(column)}>{column === 'similarity' ? scoreLabel : displayColumnName(column)}</th>
+        {#each columns as column (column)}
+          <th class="px-4 py-2 text-left border-b" class:min-w-[24rem]={isTextColumn(column)}>{column === 'similarity' ? scoreLabel : displayColumnName(column)}</th>
         {/each}
         {#if showShowOriginal}
           <th class="px-4 py-2 text-left border-b"></th><!-- blank column for show all button-->
@@ -103,10 +103,10 @@
       </tr>
     </thead>
     <tbody>
-      {#each data as row}
+      {#each data as row, rowIndex (row.sourceNodeId ?? row.id ?? rowIndex)}
         <tr class="border-b hover:bg-gray-50">
-          {#each columns as column}
-            <td class="px-4 py-2" class:w-[24rem]={isTextColumn(column)}>
+          {#each columns as column (column)}
+            <td class="px-4 py-2" class:min-w-[24rem]={isTextColumn(column)}>
               {#if column === 'similarity' && row[column] !== undefined}
                 <span class="mf-num">{(row[column] * 100).toFixed(1)}%</span>
               {:else if isTextColumn(column) || sanitizePropertyNameForWeaviate(column) === textColumn}
