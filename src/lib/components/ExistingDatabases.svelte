@@ -115,7 +115,7 @@
                   </Link>
                 </td>
                 <td class="px-4 py-2 text-gray-600">{set.uploadDate.toLocaleString()}</td>
-                <td class="px-4 py-2 text-gray-600">
+                <td class="px-4 py-2 text-gray-600 text-right">
                   {set.totalDocuments.toLocaleString()}
                 </td>
                 <td class="px-4 py-2">

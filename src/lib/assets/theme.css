@@ -209,7 +209,8 @@ a {
 .mf-num {
   font-family: var(--font-mono-accent);
   font-variant-numeric: tabular-nums;
-  color: var(--color-accent);
+  color: var(--color-gray-500); /* gray to deemph */
+
 }
 
 /* =====================================================================
