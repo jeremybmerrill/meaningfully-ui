@@ -66,8 +66,10 @@ describe('describeUniqueness', () => {
   it('labels columns by how varied their values are', () => {
     expect(describe_(['Open', 'Closed', 'Closed', 'Open', 'Closed', 'Open'])).toBe('categorical');
     expect(describe_(['a', 'b', 'c', 'd'])).toBe('unique');
-    expect(describe_([...'abcdefghijklmnopqrst', 'a'])).toBe('mostly unique');
-    expect(describe_([...'abcdefghijklmnopqrst'.slice(0, 15), 'a', 'b', 'c', 'd', 'e'])).toBeUndefined();
+    // 14 of 20 values different (70%)
+    expect(describe_([...'abcdefghijklmn', ...'abcdef'])).toBe('mostly unique');
+    // 12 of 20 values different (60%)
+    expect(describe_([...'abcdefghijkl', ...'abcdefgh'])).toBeUndefined();
     expect(describe_(['', ' '])).toBe('empty');
   });
 });
