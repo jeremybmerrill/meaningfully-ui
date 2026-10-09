@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeColumnStats, classifyColumn } from './columnStats.js';
+import { computeColumnStats, classifyColumn, describeUniqueness } from './columnStats.js';
 
 const rows = [
   { id: '1', status: 'Open', notes: 'first', empty: '' },
@@ -57,6 +57,18 @@ describe('computeColumnStats', () => {
     expect(stats.id.kind).toBe('id');
     expect(stats.status.kind).toBe('categorical');
     expect(stats.empty.kind).toBeUndefined();
+  });
+});
+
+describe('describeUniqueness', () => {
+  const describe_ = (values: string[]) => describeUniqueness(computeColumnStats(values.map(a => ({ a })), ['a']).a);
+
+  it('labels columns by how varied their values are', () => {
+    expect(describe_(['Open', 'Closed', 'Closed', 'Open', 'Closed', 'Open'])).toBe('categorical');
+    expect(describe_(['a', 'b', 'c', 'd'])).toBe('unique');
+    expect(describe_([...'abcdefghijklmnopqrst', 'a'])).toBe('mostly unique');
+    expect(describe_([...'abcdefghijklmnopqrst'.slice(0, 15), 'a', 'b', 'c', 'd', 'e'])).toBeUndefined();
+    expect(describe_(['', ' '])).toBe('empty');
   });
 });
 

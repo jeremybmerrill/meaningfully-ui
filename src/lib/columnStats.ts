@@ -56,6 +56,19 @@ export function classifyColumn(name: string, values: string[], uniqueCount: numb
   return 'text';
 }
 
+// A short description of how varied a column's values are, for the column cards:
+// "categorical" if it has a handful of repeated values, "unique" if every value is different,
+// "mostly unique" if nearly every one is, "empty" if it has no values, and nothing in between.
+export type Uniqueness = 'categorical' | 'unique' | 'mostly unique' | 'empty';
+
+export function describeUniqueness(stats: ColumnStats): Uniqueness | undefined {
+  if (stats.nonEmptyCount === 0) return 'empty';
+  if (stats.topValues) return 'categorical';
+  if (stats.uniqueCount === stats.nonEmptyCount) return 'unique';
+  if (stats.uniqueCount >= stats.nonEmptyCount * ID_UNIQUE_RATIO) return 'mostly unique';
+  return undefined;
+}
+
 export function computeColumnStats(rows: Record<string, unknown>[], columns: string[]): Record<string, ColumnStats> {
   const stats: Record<string, ColumnStats> = {};
   for (const column of columns) {

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { tick } from 'svelte';
-  import type { ColumnStats, ColumnKind } from '../columnStats.js';
+  import { describeUniqueness, type ColumnStats, type ColumnKind } from '../columnStats.js';
   import { displayColumnName } from '../columnName.js';
 
   type Bin = 'text' | 'search' | 'show';
@@ -225,9 +225,9 @@
           ></span><span class="sr-only">({kindHint(kind)})</span>
         {/if}{displayColumnName(column)}
       </span>
-      {#if columnStats[column]}
-        <span class="whitespace-nowrap text-[11px] text-gray-500" title={statsTruncated ? 'Counted in the first part of the file' : undefined}>
-          {columnStats[column].uniqueCount.toLocaleString()}{statsTruncated ? '+' : ''} unique
+      {#if columnStats[column] && describeUniqueness(columnStats[column])}
+        <span class="whitespace-nowrap text-[11px] text-gray-500" title={statsTruncated ? 'Based on the first part of the file' : undefined}>
+          {describeUniqueness(columnStats[column])}
         </span>
       {/if}
     </span>
