@@ -2,6 +2,7 @@
   import { navigate, Link } from 'svelte-routing';
   import type { DocumentSet, MeaningfullyAPI, SearchMode } from '../types.js';
   import Results from './Results.svelte';
+  import { displayColumnName } from '../columnName.js';
 
   interface Props {
     validApiKeysSet: boolean;
@@ -16,6 +17,7 @@
   let documentSetLoading = $state(true);
   let metadataColumns: string[] = $state([]);
   let textColumn: string = $state('');
+  let extraTextColumns: string[] = $state([]); // further text columns, if several are searched
   let loading = $state(false);
   let loadingMore = $state(false);
   let hasResults = $state(false);
@@ -42,6 +44,7 @@
     metadataColumns = (documentSet.parameters.metadataColumns ?? []) as string[];
     // @ts-ignore
     textColumn = documentSet.parameters.textColumns[0] as string;
+    extraTextColumns = (documentSet.parameters.textColumns as string[]).slice(1);
     documentSetLoading = false;
   }).catch(error => {
     console.error('Error fetching document set:', error);
@@ -62,7 +65,8 @@
     return searchResults.map(result => ({ // TODO Factor this out if preview and search use the same data structure.
       ...result.metadata, // flatten the metadata so that this object is the same shape as a CSV row.
       similarity: result.score,
-      [textColumn]: result.text,
+      // with several text columns, each result is a chunk of one of them (the others come from metadata)
+      [result.metadata?.mf_column ?? textColumn]: result.text,
       sourceNodeId: result.sourceNodeId
     }));
   };
@@ -232,7 +236,7 @@
               <select bind:value={filter.key} class="px-2 py-1 border border-gray-300 rounded-md">
                 <option value="" disabled>Select column</option>
                 {#each metadataColumns as column}
-                  <option value={column}>{column}</option>
+                  <option value={column}>{displayColumnName(column)}</option>
                 {/each}
               </select>
               <select bind:value={filter.operator} class="px-2 py-1 border border-gray-300 rounded-md">
@@ -286,6 +290,7 @@
           showMore={handleLoadMore}
           sortDifferently={handleSortDifferently}
           {textColumn}
+          {extraTextColumns}
           {metadataColumns}
           originalDocumentClick={handleOriginalDocumentClick}
           />
@@ -308,13 +313,13 @@
         </thead>
         <tbody>
           <tr>
-            <td class="px-4 py-2 text-left border-b text-black">{textColumn || 'Original text'}</td>
+            <td class="px-4 py-2 text-left border-b text-black">{modalContent.metadata?.mf_column !== undefined ? displayColumnName(modalContent.metadata.mf_column) : (textColumn ? displayColumnName(textColumn) : 'Original text')}</td>
             <td class="px-4 py-2 border-b text-black">{modalContent.text}</td>
           </tr>
           <!-- show every column, not just the ones selected for the results list -->
-          {#each Object.entries(modalContent.metadata ?? {}) as [key, value]}
+          {#each Object.entries(modalContent.metadata ?? {}).filter(([key]) => key !== 'mf_row' && key !== 'mf_column') as [key, value]}
             <tr>
-              <td class="px-4 py-2 text-left border-b text-black">{key}</td>
+              <td class="px-4 py-2 text-left border-b text-black">{displayColumnName(key)}</td>
               <td class="px-4 py-2 border-b text-black">{value}</td>
             </tr>
           {/each}

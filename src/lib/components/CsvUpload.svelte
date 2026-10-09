@@ -2,6 +2,10 @@
   import { navigate } from 'svelte-routing';
   import Papa from 'papaparse';
   import { fileDataStore } from '../stores/fileDataStore.js';
+  import { computeColumnStats } from '../columnStats.js';
+
+  // rows parsed to validate the file and compute column stats (unique counts, common values)
+  const STATS_ROW_LIMIT = 10000;
 
   let {
     validApiKeysSet,
@@ -80,12 +84,18 @@
           return;
         }
 
+        const rows = results.data as Record<string, string>[];
+        const columnStats = computeColumnStats(rows, availableColumns);
+
         // Store file data in sessionStorage for the next step
         const fileData = {
           name: file.name,
           size: file.size,
           lastModified: file.lastModified,
           availableColumns,
+          columnStats,
+          statsRowCount: rows.length,
+          statsTruncated: results.meta.truncated,
         };
 
         // Store the actual file as a base64 string
@@ -117,7 +127,7 @@
       },
       header: true,
       skipEmptyLines: true,
-      preview: 10 // Only parse first 10 rows for validation
+      preview: STATS_ROW_LIMIT
     });
   };
 </script>

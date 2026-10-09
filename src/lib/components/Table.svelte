@@ -1,7 +1,11 @@
 <script lang="ts">
+  import { displayColumnName } from '../columnName.js';
+
   interface Props {
     data?: Array<Record<string, any>>;
     textColumn: string;
+    // further text columns, when several are searched; shown (and styled) like textColumn
+    extraTextColumns?: string[];
     metadataColumns?: string[];
     showSimilarity?: boolean;
     // Header text for the score column ('similarity' by default).
@@ -13,6 +17,7 @@
   let {
     data = [],
     textColumn,
+    extraTextColumns = [],
     metadataColumns = [],
     showSimilarity = false,
     scoreLabel = 'similarity',
@@ -23,8 +28,10 @@
   // Combine all columns in display order: metadata, similarity/score.
   // The 'similarity' key is the row's internal data key regardless of search mode; scoreLabel
   // only controls its displayed header text (see below).
-  let columns = $derived([textColumn, ...metadataColumns, ...(showSimilarity ? ['similarity'] : [])]);
+  let columns = $derived([textColumn, ...extraTextColumns, ...metadataColumns, ...(showSimilarity ? ['similarity'] : [])]);
 
+
+  const isTextColumn = (column: string) => column === textColumn || extraTextColumns.includes(column);
 
   // copied from https://github.com/run-llama/LlamaIndexTS/blob/main/packages/providers/storage/weaviate/src/sanitize.ts
   // weaviate requires property names (i.e. metadata column names) to start with a lowercase letter or underscore,
@@ -87,8 +94,8 @@
   <table class="min-w-full table-auto border-collapse">
     <thead>
       <tr class="bg-gray-100">
-        {#each columns as column}
-          <th class="px-4 py-2 text-left border-b" class:w-[24rem]={column === textColumn}>{column === 'similarity' ? scoreLabel : column}</th>
+        {#each columns as column (column)}
+          <th class="px-4 py-2 text-left border-b" class:min-w-[24rem]={isTextColumn(column)}>{column === 'similarity' ? scoreLabel : displayColumnName(column)}</th>
         {/each}
         {#if showShowOriginal}
           <th class="px-4 py-2 text-left border-b"></th><!-- blank column for show all button-->
@@ -96,13 +103,13 @@
       </tr>
     </thead>
     <tbody>
-      {#each data as row}
+      {#each data as row, rowIndex (row.sourceNodeId ?? row.id ?? rowIndex)}
         <tr class="border-b hover:bg-gray-50">
-          {#each columns as column}
-            <td class="px-4 py-2" class:w-[24rem]={column === textColumn}>
+          {#each columns as column (column)}
+            <td class="px-4 py-2" class:min-w-[24rem]={isTextColumn(column)}>
               {#if column === 'similarity' && row[column] !== undefined}
                 <span class="mf-num">{(row[column] * 100).toFixed(1)}%</span>
-              {:else if column === textColumn || sanitizePropertyNameForWeaviate(column) === textColumn}
+              {:else if isTextColumn(column) || sanitizePropertyNameForWeaviate(column) === textColumn}
                 {@html sanitizeAndFormatText(row[column]  || row[sanitizePropertyNameForWeaviate(column)]  || '')}
               {:else if is_link(row[column]  || row[sanitizePropertyNameForWeaviate(column)] )}
                 {@html linkify(row[column]  || row[sanitizePropertyNameForWeaviate(column)] )}

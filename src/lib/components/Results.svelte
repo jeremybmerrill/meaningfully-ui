@@ -5,6 +5,7 @@
   interface Props {
     results?: Array<Record<string, any>>;
     textColumn: string;
+    extraTextColumns?: string[];
     metadataColumns?: string[];
     loading?: boolean;
     hasMore?: boolean;
@@ -20,6 +21,7 @@
   let {
     results = [],
     textColumn,
+    extraTextColumns = [],
     metadataColumns = [],
     loading = false,
     hasMore = false,
@@ -72,6 +74,10 @@
       // Add text column
       csvRow[textColumn] = row[textColumn] || '';
       
+      extraTextColumns.forEach(column => {
+        csvRow[column] = row[column] || row[sanitizePropertyName(column)] || '';
+      });
+
       // Add metadata columns
       // check the sanitized version if the original doesn't exist
       // certain characters aren't allowed in weaviate property names  -- if present, and if weaviate is used as storage, they will be returned as sanitized.
@@ -155,6 +161,7 @@
       <Table
         data={results}
         {textColumn}
+        {extraTextColumns}
         {metadataColumns}
         showSimilarity={true}
         {scoreLabel}
