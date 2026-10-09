@@ -25,6 +25,7 @@ interface BaseUploadFormData {
   description: string;
   textColumns: string[];
   metadataColumns: string[];
+  embeddedMetadataColumns?: string[]; // metadata columns that are also embedded with the text
   splitIntoSentences: boolean;
   combineSentencesIntoChunks: boolean;
   sploderMaxSize: number;

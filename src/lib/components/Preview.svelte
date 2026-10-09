@@ -4,6 +4,7 @@
   interface Props {
     previewData?: Array<Record<string, any>>;
     textColumn: string;
+    extraTextColumns?: string[];
     metadataColumns?: string[];
     loading?: boolean;
   }
@@ -11,6 +12,7 @@
   let {
     previewData = [],
     textColumn,
+    extraTextColumns = [],
     metadataColumns = [],
     loading = false
   }: Props = $props();
@@ -28,6 +30,7 @@
         <Table
           data={previewData}
           {textColumn}
+          {extraTextColumns}
           {metadataColumns}
           showSimilarity={false}
         />

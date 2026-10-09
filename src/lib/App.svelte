@@ -8,6 +8,7 @@
   import HelpPage from './components/HelpPage.svelte'
   import ApiKeyStatus from './components/ApiKeyStatus.svelte'
   import type { MeaningfullyAPI } from './types.js';
+  import { useLegacyColumnPicker } from './stores/columnPickerStore.js';
 
   interface Props {
     api: MeaningfullyAPI;
@@ -31,9 +32,14 @@
       }
   };
 
-  // Secret: typing "top8" (outside a form field) flips the app into the
-  // "Personal Page" look. Typing it again flips back to the Card Catalog default.
-  const secretPassword = 'top8';
+  // Secrets, typed outside a form field:
+  //  - "top8" flips the app into the "Personal Page" look; typing it again flips back to the Card Catalog default.
+  //  - "oldpicker" switches the upload page's column picker to the previous interface, and back.
+  const secretCodes: Record<string, () => void> = {
+    top8: () => applyPersonalPageTheme(document.documentElement.getAttribute('data-theme') !== 'personal-page'),
+    oldpicker: () => useLegacyColumnPicker.update(useLegacy => !useLegacy),
+  };
+  const longestSecretCode = Math.max(...Object.keys(secretCodes).map(code => code.length));
   let secretBuffer = '';
 
   const isTypingInAField = (target: EventTarget | null) => {
@@ -51,10 +57,11 @@
 
   const handleSecretKeydown = (event: KeyboardEvent) => {
     if (isTypingInAField(event.target) || event.key.length !== 1) return;
-    secretBuffer = (secretBuffer + event.key.toLowerCase()).slice(-secretPassword.length);
-    if (secretBuffer === secretPassword) {
+    secretBuffer = (secretBuffer + event.key.toLowerCase()).slice(-longestSecretCode);
+    const code = Object.keys(secretCodes).find(code => secretBuffer.endsWith(code));
+    if (code) {
       secretBuffer = '';
-      applyPersonalPageTheme(document.documentElement.getAttribute('data-theme') !== 'personal-page');
+      secretCodes[code]();
     }
   };
 
