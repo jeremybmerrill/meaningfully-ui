@@ -335,7 +335,7 @@
     </div>
   
     <div class="bg-white p-6 rounded-lg shadow space-y-6 text-black mb-10">
-      <h3>Column Configuration</h3>
+      <h3>Choose columns to search and show</h3>
       {#if $useLegacyColumnPicker}
         <LegacyColumnPicker
           availableColumns={fileData.availableColumns}

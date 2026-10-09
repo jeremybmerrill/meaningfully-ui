@@ -29,22 +29,22 @@
       id: 'text',
       title: 'Text columns to search',
       badge: 'required',
-      hint: 'e.g. a description, narrative, complaint, or transcript. If you add more than one, each is searched separately and a row shows up in the results just once.',
-      placeholder: 'Drag at least one column here'
+      hint: '. If you add more than one, each is searched separately and a row shows up in the results just once.',
+      placeholder: 'e.g. a description, narrative, complaint, or transcript'
     },
     {
       id: 'search',
       title: 'Additional details to search and show',
       badge: 'optional',
-      hint: 'Columns containing short details that might be omitted from the main text column, like a title or a model number.',
-      placeholder: 'e.g. Title, Neighborhood'
+      hint: 'Short details crucial to understanding the text columns, but which might be omitted from it, like a title or a model number.',
+      placeholder: 'e.g. title, model_number, year'
     },
     {
       id: 'show',
       title: 'Details to show only',
       badge: 'optional',
-      hint: 'Shown alongside each result and available for filtering, but not searched. Good for dates, IDs, categories, applicant names, and links back to the original.',
-      placeholder: 'e.g. Date, URL, Category'
+      hint: 'Shown alongside each result and available for filtering, but not searched. ',
+      placeholder: 'e.g. dates, IDs, categories, applicant names, and URLs.'
     }
   ];
 
@@ -251,8 +251,8 @@
 
 <div class="space-y-3" data-testid="column-sorter">
   <p class="text-sm text-gray-700">
-    Choose how to search each of your spreadsheet's columns by dragging them into the boxes on the right.
-    Columns you leave on the left won't be searched or shown.
+    Drag your spreadsheet's text column(s) into the "Text columns to search" section. Then drag over any other metadata columns
+    that you want to be shown in your results into the other sections. You can preview the search results below.
   </p>
 
   {#if selectedColumn}
